@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useGame } from "../../context/GameContext";
-import { HelpCircle } from "lucide-react"; // Icono provisional para el vaso
-import cirnoFumo from "../../assets/cirno.png";
+import cirnoFumo from "../../assets/level2/cirno.png";
+import glassImg from "../../assets/level2/glass.png";
 
 // Configuración
 const SHUFFLE_DURATION_BASE = 2500; // Duración base del barajado
@@ -202,19 +202,17 @@ export default function Level2() {
                     🥖
                   </div>
 
-                  {/* EL VASO (Tapa) */}
-                  <div
+                  {/* EL VASO */}
+                  <img
+                    src={glassImg}
+                    alt="Vaso"
+                    draggable={false}
                     className={`
-                w-full h-20 bg-white border-4 border-gray-400 z-10 flex items-center justify-center
-                transition-transform duration-500 ease-in-out
-                ${showBread ? "-translate-y-12 mb-2" : "translate-y-0"}
-              `}
-                  >
-                    {/* Decoración del vaso */}
-                    <span className="text-black font-bold text-2xl rotate-180">
-                      U
-                    </span>
-                  </div>
+                      w-20 h-24 object-contain z-10
+                      transition-transform duration-500 ease-in-out
+                      ${showBread ? "-translate-y-12" : "translate-y-0"}
+                    `}
+                  />
 
                   {/* Indicador de selección */}
                   {isSelected && (
