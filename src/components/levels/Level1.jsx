@@ -3,12 +3,12 @@ import { useGame } from "../../context/GameContext";
 // IMPORTANTE: Importamos la imagen desde tu carpeta assets para que Vite la encuentre
 import mikuImg from "../../assets/Miku.png";
 // TUS IMÁGENES REALES (Según tu captura)
-import reimuImg from "../../assets/lv1/reimu.png";
-import marisaImg from "../../assets/lv1/marisa.png";
-import sakuyaImg from "../../assets/lv1/sakuya.png"; // <--- CAMBIO: Usamos Sakuya
-import flandreImg from "../../assets/lv1/flandre.png";
-import yuyukoImg from "../../assets/lv1/yuyuko.png"; // <--- CAMBIO: Usamos Yuyuko
-import koishiImg from "../../assets/lv1/koishi.png";
+import reimuImg from "../../assets/level1/reimu.png";
+import marisaImg from "../../assets/level1/marisa.png";
+import sakuyaImg from "../../assets/level1/sakuya.png"; // <--- CAMBIO: Usamos Sakuya
+import flandreImg from "../../assets/level1/flandre.png";
+import yuyukoImg from "../../assets/level1/yuyuko.png"; // <--- CAMBIO: Usamos Yuyuko
+import koishiImg from "../../assets/level1/koishi.png";
 
 /* DATA CORREGIDA */
 const FUMO_DATA = [
@@ -173,7 +173,7 @@ export default function Level1() {
   const progress = (timeLeft / TIME_LIMIT) * 100;
 
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl relative">
+    <div className="flex flex-col items-center w-full max-w-3xl relative">
       <style>{`
         @keyframes float {
           0% { transform: translate(0, 0) rotate(0deg); }
@@ -254,7 +254,7 @@ export default function Level1() {
       </div>
 
       {/* --- TABLERO --- */}
-      <div className="relative w-full aspect-square max-w-[400px] border-4 border-white bg-black overflow-hidden flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+      <div className="relative w-full aspect-square max-w-[550px] border-4 border-white bg-black overflow-hidden flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)]">
         {/* Cubierta de Intro */}
         {showIntro && (
           <div className="absolute inset-0 bg-black/90 z-10 flex flex-col items-center justify-center gap-4">
@@ -268,7 +268,7 @@ export default function Level1() {
         <div
           className={`${boardClass} p-4 bg-gray-800 border-2 border-white rounded-lg transition-all duration-300`}
         >
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
             {cards.map((card, index) => {
               const isFlipped =
                 flipped.includes(index) || solved.includes(card.id);
@@ -279,7 +279,7 @@ export default function Level1() {
                   key={card.uniqueId}
                   onClick={() => handleClick(index)}
                   className={`
-                    w-12 h-12 sm:w-16 sm:h-16 cursor-pointer
+                    w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 cursor-pointer
                     border-2 flex items-center justify-center bg-gray-900 transition-all duration-200
                     ${isShaking ? "card-shake" : ""}
                     ${isFlipped ? "border-teto-red rotate-y-180" : "border-white hover:border-yellow-400"}
@@ -313,17 +313,15 @@ export default function Level1() {
       </div>
 
       {/* --- INTERFAZ DE MIKU --- */}
-      <div className="mt-4 w-full max-w-[400px] flex gap-2 items-stretch relative">
+      <div className="mt-4 w-full max-w-[550px] flex gap-2 items-stretch relative">
         {/* FOTO DE MIKU */}
-        {showIntro && (
-          <div className="w-16 h-16 border-2 border-white bg-black overflow-hidden flex-shrink-0">
-            <img
-              src={mikuImg} // <--- Usamos la variable importada
-              alt="Miku"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        )}
+        <div className="w-16 h-16 border-2 border-white bg-black overflow-hidden flex-shrink-0">
+          <img
+            src={mikuImg} // <--- Usamos la variable importada
+            alt="Miku"
+            className="w-full h-full object-cover"
+          />
+        </div>
 
         {/* CAJA DE TEXTO */}
         <div className="flex-1 border-4 border-white p-3 min-h-[80px] bg-black z-20 relative flex flex-col justify-center">

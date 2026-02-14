@@ -1,5 +1,5 @@
 import { useGame } from "../context/GameContext";
-import Level1 from "./levels/level1";
+import Level1 from "./levels/Level1";
 import LevelPlaceholder from "./levels/LevelPlaceholder";
 
 import Level2 from "./levels/Level2";
