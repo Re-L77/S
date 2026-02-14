@@ -23,9 +23,12 @@ body {
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px) rotate(-2deg);
   }
+
   50% {
     transform: translateY(-15px) rotate(2deg);
   }
@@ -41,13 +44,16 @@ body {
     opacity: 0;
     transform: translateX(-200px) scale(0.5) rotate(-15deg);
   }
+
   60% {
     opacity: 1;
     transform: translateX(20px) scale(1.05) rotate(3deg);
   }
+
   80% {
     transform: translateX(-10px) scale(0.98) rotate(-1deg);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0) scale(1) rotate(0deg);
@@ -59,13 +65,16 @@ body {
     opacity: 0;
     transform: translateX(200px) scale(0.5) rotate(15deg);
   }
+
   60% {
     opacity: 1;
     transform: translateX(-20px) scale(1.05) rotate(-3deg);
   }
+
   80% {
     transform: translateX(10px) scale(0.98) rotate(1deg);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0) scale(1) rotate(0deg);
@@ -79,4 +88,191 @@ body {
 .animate-magnet-right {
   animation: magnet-right 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   animation-delay: 0.1s;
+}
+
+/* === ANIMACIONES DE HACKEO PARA PIEZAS DEL SOBRE === */
+@keyframes glitch-reveal {
+  0% {
+    opacity: 0;
+    clip-path: inset(50% 50% 50% 50%);
+    filter: hue-rotate(90deg) saturate(2);
+  }
+
+  10% {
+    opacity: 1;
+    clip-path: inset(20% 80% 70% 0%);
+    filter: hue-rotate(180deg) saturate(3);
+  }
+
+  20% {
+    clip-path: inset(60% 0% 20% 60%);
+    filter: hue-rotate(270deg) saturate(2);
+  }
+
+  30% {
+    clip-path: inset(10% 40% 80% 10%);
+    filter: hue-rotate(45deg) saturate(4);
+  }
+
+  40% {
+    clip-path: inset(70% 10% 10% 50%);
+    filter: hue-rotate(135deg) saturate(2);
+  }
+
+  50% {
+    clip-path: inset(30% 60% 40% 20%);
+    filter: hue-rotate(225deg) saturate(3);
+  }
+
+  60% {
+    clip-path: inset(5% 5% 70% 5%);
+    filter: hue-rotate(315deg) saturate(2);
+  }
+
+  70% {
+    clip-path: inset(80% 20% 5% 30%);
+    filter: hue-rotate(60deg) saturate(1.5);
+  }
+
+  80% {
+    clip-path: inset(15% 15% 15% 15%);
+    filter: hue-rotate(30deg) saturate(1.2);
+  }
+
+  90% {
+    clip-path: inset(5% 5% 5% 5%);
+    filter: hue-rotate(10deg) saturate(1.1);
+  }
+
+  100% {
+    opacity: 1;
+    clip-path: inset(0% 0% 0% 0%);
+    filter: hue-rotate(0deg) saturate(1);
+  }
+}
+
+@keyframes hack-scanline {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes data-corrupt {
+
+  0%,
+  100% {
+    transform: skewX(0deg) translateX(0);
+  }
+
+  10% {
+    transform: skewX(-5deg) translateX(-3px);
+  }
+
+  20% {
+    transform: skewX(3deg) translateX(2px);
+  }
+
+  30% {
+    transform: skewX(-2deg) translateX(-1px);
+  }
+
+  40% {
+    transform: skewX(4deg) translateX(3px);
+  }
+
+  50% {
+    transform: skewX(-3deg) translateX(-2px);
+  }
+}
+
+@keyframes piece-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.8), 0 0 40px rgba(0, 255, 0, 0.4);
+  }
+}
+
+.animate-glitch-reveal {
+  animation: glitch-reveal 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards,
+    data-corrupt 0.3s ease-in-out 5;
+}
+
+.envelope-piece-locked {
+  filter: grayscale(100%) brightness(0.3);
+  opacity: 0.4;
+}
+
+.envelope-piece-unlocked {
+  animation: piece-pulse 2s ease-in-out infinite;
+}
+
+.hack-overlay {
+  background: linear-gradient(transparent 50%,
+      rgba(0, 255, 0, 0.03) 50%);
+  background-size: 100% 4px;
+  pointer-events: none;
+}
+
+/* === ANIMACIONES ADICIONALES === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glitch-text {
+
+  0%,
+  100% {
+    text-shadow:
+      2px 0 #ff3366,
+      -2px 0 #00ff88;
+  }
+
+  25% {
+    text-shadow:
+      -2px 0 #ff3366,
+      2px 0 #00ff88;
+  }
+
+  50% {
+    text-shadow:
+      2px 2px #ff3366,
+      -2px -2px #00ff88;
+  }
+
+  75% {
+    text-shadow:
+      -2px 2px #ff3366,
+      2px -2px #00ff88;
+  }
+}
+
+.glitch-text {
+  animation: glitch-text 0.3s ease-in-out infinite;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
 }

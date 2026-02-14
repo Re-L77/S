@@ -67,7 +67,7 @@ const CIRNO_INSULTS = [
 ];
 
 export default function Level2() {
-  const { nextLevel, takeDamage } = useGame();
+  const { nextLevel, takeDamage, completeLevel } = useGame();
   const { playSfx } = useAudio();
   const bgmRef = useRef(null);
 
@@ -248,11 +248,12 @@ export default function Level2() {
     } else {
       // Perdió. Restar vida y reiniciar ESTA ronda (no resetear vasos)
       playSfx("baka");
-      
+
       // Cirno insulta al jugador
-      const randomInsult = CIRNO_INSULTS[Math.floor(Math.random() * CIRNO_INSULTS.length)];
+      const randomInsult =
+        CIRNO_INSULTS[Math.floor(Math.random() * CIRNO_INSULTS.length)];
       setChatHistory((prev) => [...prev, randomInsult]);
-      
+
       updateMessage(
         isFinalRound
           ? "¡¡NOOOO!! ¡Tan cerca! -1 vida"
@@ -320,6 +321,7 @@ export default function Level2() {
         isOpen={showWinModal}
         onClose={() => {
           setShowWinModal(false);
+          completeLevel(2); // Desbloquear pieza 2 del sobre
           nextLevel();
         }}
         type="win"

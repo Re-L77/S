@@ -1,6 +1,7 @@
 import { useGame } from "../context/GameContext";
 import Level1 from "./levels/Level1";
 import LevelPlaceholder from "./levels/LevelPlaceholder";
+import GameOverScreen from "./ui/GameOverScreen";
 
 import Level2 from "./levels/Level2";
 // IMPORTANTE: Aquí importarás tus niveles reales cuando los crees
@@ -10,18 +11,7 @@ const GameManager = () => {
   const { level, gameState } = useGame();
 
   if (gameState === "gameover") {
-    return (
-      <div className="text-center text-red-500 animate-pulse">
-        <h1 className="text-4xl">DETERMINATION... FAILED</h1>
-        <p>Teto no recibió su regalo :(</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 border-2 border-white p-2 hover:bg-white hover:text-black"
-        >
-          REINTENTAR
-        </button>
-      </div>
-    );
+    return <GameOverScreen />;
   }
 
   // Router de Niveles
@@ -32,7 +22,9 @@ const GameManager = () => {
     case 2:
       return <Level2 />;
     case 3:
-      return <LevelPlaceholder name="Nivel 3: Carrera" />;
+      return <LevelPlaceholder name="Nivel 3: Carrera" levelNumber={3} />;
+    case 4:
+      return <LevelPlaceholder name="Nivel 4: ???" levelNumber={4} />;
     // ... añade casos hasta el 7
     default:
       return <div className="text-green-400">¡GANASTE EL CORAZÓN DE TETO!</div>;

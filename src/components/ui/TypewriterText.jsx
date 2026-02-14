@@ -12,7 +12,13 @@ export default function TypewriterText({
   const [displayedText, setDisplayedText] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const indexRef = useRef(0);
+  const onCompleteRef = useRef(onComplete);
   const { playSound } = useAudio();
+
+  // Mantener referencia actualizada de onComplete sin causar re-renders
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   // Efecto typewriter
   useEffect(() => {
@@ -41,7 +47,7 @@ export default function TypewriterText({
       } else {
         clearInterval(interval);
         setIsComplete(true);
-        if (onComplete) onComplete();
+        if (onCompleteRef.current) onCompleteRef.current();
       }
     }, speed);
 
@@ -49,7 +55,7 @@ export default function TypewriterText({
       clearTimeout(resetTimeout);
       clearInterval(interval);
     };
-  }, [text, speed, playing, playSound, voice, onComplete]);
+  }, [text, speed, playing, playSound, voice]);
 
   return (
     <span className={className}>

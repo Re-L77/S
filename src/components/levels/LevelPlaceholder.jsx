@@ -1,7 +1,12 @@
 import { useGame } from "../../context/GameContext";
 
-const LevelPlaceholder = ({ name }) => {
-  const { nextLevel, takeDamage } = useGame();
+const LevelPlaceholder = ({ name, levelNumber = 3 }) => {
+  const { nextLevel, takeDamage, completeLevel } = useGame();
+
+  const handleWin = () => {
+    completeLevel(levelNumber); // Desbloquear pieza del sobre
+    nextLevel();
+  };
 
   return (
     <div className="text-center space-y-4">
@@ -15,7 +20,7 @@ const LevelPlaceholder = ({ name }) => {
           Simular Fallo
         </button>
         <button
-          onClick={nextLevel}
+          onClick={handleWin}
           className="bg-green-900 px-4 py-2 border border-green-500"
         >
           Simular Victoria

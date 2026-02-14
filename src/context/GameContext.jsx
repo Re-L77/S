@@ -2,10 +2,40 @@ import { createContext, useState, useContext } from "react";
 
 const GameContext = createContext();
 
+// Mapeo de niveles a piezas del corazón
+const LEVEL_TO_PIECE = {
+  1: "header", // Nivel 1 -> Encabezado
+  2: "logic", // Nivel 2 -> Protocolo/Lógica
+  3: "payload", // Nivel 3 -> Contenido emocional
+  4: "signature", // Nivel 4 -> Firma/Autenticación
+};
+
 export const GameProvider = ({ children }) => {
-  const [level, setLevel] = useState(2); // Nivel actual
+  const [level, setLevel] = useState(1); // Nivel actual
   const [lives, setLives] = useState(4); // Vidas globales (Miku)
-  const [gameState, setGameState] = useState("playing"); // playing, won, gameover
+  const [gameState, setGameState] = useState("intro"); // intro, playing, won, gameover
+  const [checkpoint, setCheckpoint] = useState(1); // Último nivel completado + 1
+
+  // Sistema de piezas del corazón
+  const [heartPieces, setHeartPieces] = useState({
+    header: false, // Nivel 1 - El Encabezado
+    logic: false, // Nivel 2 - El Protocolo
+    payload: false, // Nivel 3 - El Contenido
+    signature: false, // Nivel 4 - La Firma
+  });
+
+  // Para mostrar el modal de pieza desbloqueada
+  const [unlockedPiece, setUnlockedPiece] = useState(null);
+
+  // Calcular progreso de desencriptación
+  const decryptionProgress =
+    Object.values(heartPieces).filter(Boolean).length * 25;
+  const isFullyDecrypted = decryptionProgress === 100;
+
+  // Acción: Iniciar el juego (después de la intro)
+  const startGame = () => {
+    setGameState("playing");
+  };
 
   // Acción: Perder vida
   const takeDamage = () => {
@@ -16,9 +46,65 @@ export const GameProvider = ({ children }) => {
     });
   };
 
+  // Acción: Completar un nivel y desbloquear pieza del corazón
+  const completeLevel = (levelNum) => {
+    const pieceKey = LEVEL_TO_PIECE[levelNum];
+    if (pieceKey && !heartPieces[pieceKey]) {
+      setHeartPieces((prev) => ({ ...prev, [pieceKey]: true }));
+      setUnlockedPiece(pieceKey);
+    }
+    // Guardar checkpoint
+    setCheckpoint(levelNum + 1);
+  };
+
+  // Acción: Cerrar el modal de pieza desbloqueada
+  const closePieceModal = () => {
+    setUnlockedPiece(null);
+  };
+
   // Acción: Pasar de nivel
   const nextLevel = () => {
     setLevel((prev) => prev + 1);
+  };
+
+  // DEBUG: Simular ganar todos los niveles (solo para testing)
+  const debugWinAll = () => {
+    setHeartPieces({
+      header: true,
+      logic: true,
+      payload: true,
+      signature: true,
+    });
+    setLevel(5); // Nivel después del último
+    setGameState("won");
+  };
+
+  // DEBUG: Simular ganar el nivel actual
+  const debugWinLevel = () => {
+    completeLevel(level);
+    nextLevel();
+  };
+
+  // Reiniciar desde el último checkpoint
+  const restartFromCheckpoint = () => {
+    setLevel(checkpoint);
+    setLives(4);
+    setGameState("playing");
+  };
+
+  // Reiniciar todo el juego
+  const restartGame = () => {
+    setLevel(1);
+    setLives(4);
+    setGameState("intro");
+    setCheckpoint(1);
+    setHeartPieces({
+      header: false,
+      logic: false,
+      payload: false,
+      signature: false,
+    });
+    setUnlockedPiece(null);
   };
 
   return (
@@ -27,11 +113,23 @@ export const GameProvider = ({ children }) => {
         level,
         lives,
         gameState,
+        heartPieces,
+        unlockedPiece,
+        decryptionProgress,
+        isFullyDecrypted,
+        checkpoint,
+        startGame,
         takeDamage,
         nextLevel,
+        completeLevel,
+        closePieceModal,
         setLevel,
         setLives,
         setGameState,
+        debugWinAll,
+        debugWinLevel,
+        restartFromCheckpoint,
+        restartGame,
       }}
     >
       {children}

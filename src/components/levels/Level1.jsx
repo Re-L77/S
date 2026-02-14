@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGame } from "../../context/GameContext";
 import { useAudio } from "../../context/AudioContext";
 import GameModal from "../ui/GameModal";
@@ -13,6 +13,8 @@ import sakuyaImg from "../../assets/level1/sakuya.png"; // <--- CAMBIO: Usamos S
 import flandreImg from "../../assets/level1/flandre.png";
 import yuyukoImg from "../../assets/level1/yuyuko.png"; // <--- CAMBIO: Usamos Yuyuko
 import koishiImg from "../../assets/level1/koishi.png";
+// Música de fondo (agrega el archivo level1.mp3 en assets/sound/levels/)
+import level1Bgm from "../../assets/sound/levels/level1.mp3";
 
 /* DATA CORREGIDA */
 const FUMO_DATA = [
@@ -65,8 +67,23 @@ const MIKU_RULES = [
 ];
 
 export default function Level1() {
-  const { nextLevel, takeDamage } = useGame();
+  const { nextLevel, takeDamage, completeLevel } = useGame();
   const { playSfx } = useAudio();
+  const bgmRef = useRef(null);
+
+  // Inicializar audio de fondo
+  useEffect(() => {
+    bgmRef.current = new Audio(level1Bgm);
+    bgmRef.current.loop = true;
+    bgmRef.current.volume = 0.3;
+
+    return () => {
+      if (bgmRef.current) {
+        bgmRef.current.pause();
+        bgmRef.current = null;
+      }
+    };
+  }, []);
 
   // --- ESTADOS ---
   const [cards, setCards] = useState([]);
@@ -176,7 +193,35 @@ export default function Level1() {
     playSfx("weaponPull");
     setShowIntro(false);
     setMessage("¡Comienza!");
+    // Iniciar música de fondo
+    if (bgmRef.current) {
+      bgmRef.current.currentTime = 0;
+      bgmRef.current.play().catch(() => {});
+    }
   };
+
+  // Detener música cuando se gana, reanudar después de daño
+  useEffect(() => {
+    if (showWinModal) {
+      if (bgmRef.current) {
+        bgmRef.current.pause();
+      }
+    }
+  }, [showWinModal]);
+
+  // No pausar música en el modal de daño, solo atenuar temporalmente
+  useEffect(() => {
+    if (showDamageModal && bgmRef.current) {
+      bgmRef.current.volume = 0.1; // Atenuar
+    } else if (
+      !showDamageModal &&
+      bgmRef.current &&
+      !showIntro &&
+      !showWinModal
+    ) {
+      bgmRef.current.volume = 0.3; // Restaurar volumen normal
+    }
+  }, [showDamageModal, showIntro, showWinModal]);
 
   // --- GLITCH VISUALS ---
   const isWarning = timeLeft <= 25;
@@ -189,7 +234,7 @@ export default function Level1() {
   const progress = (timeLeft / TIME_LIMIT) * 100;
 
   return (
-    <div className="flex flex-row items-start justify-center w-full gap-4 px-4">
+    <div className="flex flex-col items-center justify-center w-full">
       {/* PANTALLA DE CARGA */}
       {showLoading && (
         <LevelLoader levelNumber={1} onComplete={() => setShowLoading(false)} />
@@ -200,6 +245,7 @@ export default function Level1() {
         isOpen={showWinModal}
         onClose={() => {
           setShowWinModal(false);
+          completeLevel(1); // Desbloquear pieza 1 del sobre
           nextLevel();
         }}
         type="win"
@@ -325,9 +371,9 @@ export default function Level1() {
           </div>
         </div>
       ) : (
-        <>
-          {/* --- ÁREA DE JUEGO (IZQUIERDA) --- */}
-          <div className="flex flex-col items-center flex-1 max-w-125">
+        <div className="flex flex-col items-center w-full max-w-2xl mx-auto gap-4">
+          {/* --- ÁREA DE JUEGO --- */}
+          <div className="flex flex-col items-center w-full">
             {/* HEADER */}
             <div className="flex justify-between w-full font-mono mb-2 px-2 text-sm sm:text-base">
               <span
@@ -351,12 +397,12 @@ export default function Level1() {
             </div>
 
             {/* --- TABLERO --- */}
-            <div className="relative w-full aspect-square max-w-137.5 border-4 border-white bg-black overflow-hidden flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+            <div className="relative w-full border-4 border-white bg-black overflow-visible flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)] p-2">
               {/* JUEGO */}
               <div
-                className={`${boardClass} p-4 bg-gray-800 border-2 border-white rounded-lg transition-all duration-300`}
+                className={`${boardClass} p-2 sm:p-4 bg-gray-800 border-2 border-white rounded-lg transition-all duration-300`}
               >
-                <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
                   {cards.map((card, index) => {
                     const isFlipped =
                       flipped.includes(index) || solved.includes(card.id);
@@ -367,7 +413,7 @@ export default function Level1() {
                         key={card.uniqueId}
                         onClick={() => handleClick(index)}
                         className={`
-                      w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 cursor-pointer
+                      w-[72px] h-[72px] sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 cursor-pointer
                       border-2 flex items-center justify-center bg-gray-900 transition-all duration-200
                       ${isShaking ? "card-shake" : ""}
                       ${isFlipped ? "border-teto-red rotate-y-180" : "border-white hover:border-yellow-400"}
@@ -401,48 +447,17 @@ export default function Level1() {
             </div>
           </div>
 
-          {/* --- LIVE CHAT MIKU (DERECHA) --- */}
-          <div className="w-64 flex flex-col border-4 border-white bg-black h-125">
-            {/* Header del chat */}
-            <div className="border-b-2 border-white p-2 flex items-center gap-2 bg-gray-900">
-              <div className="w-10 h-10 border-2 border-teto-red overflow-hidden shrink-0">
-                <img
-                  src={mikuImg}
-                  alt="Miku"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-teto-red font-mono text-sm font-bold">
-                  MIKU
-                </span>
-                <span className="text-green-400 font-mono text-xs">
-                  ● EN LÍNEA
-                </span>
-              </div>
-            </div>
-
-            {/* Área de mensajes */}
-            <div className="flex-1 p-3 overflow-y-auto flex flex-col gap-2">
-              <div
-                className={`bg-gray-800 border rounded-lg p-2 ${isCritical ? "border-red-500" : "border-gray-600"}`}
+          {/* --- CAJA DE DIÁLOGO ESTILO UNDERTALE (ABAJO) --- */}
+          <div className="w-full border-4 border-white bg-black">
+            <div className="p-4">
+              <p
+                className={`font-mono text-lg leading-relaxed ${isCritical ? "text-red-400" : "text-white"}`}
               >
-                <p
-                  className={`font-mono text-xs leading-relaxed ${isCritical ? "text-red-400" : "text-white"}`}
-                >
-                  * {message}
-                </p>
-              </div>
-            </div>
-
-            {/* Input/Botón área */}
-            <div className="border-t-2 border-white p-2 bg-gray-900">
-              <div className="text-gray-500 font-mono text-xs text-center py-2">
-                {isCritical ? "⚠ SISTEMA INESTABLE" : "Sistema activo..."}
-              </div>
+                * {message}
+              </p>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
