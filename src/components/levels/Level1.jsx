@@ -159,7 +159,7 @@ export default function Level1() {
       flipped.includes(index)
     )
       return;
-    playSfx("sqek");
+    playSfx("sqek", 0.9);
     setFlipped((prev) => [...prev, index]);
   };
 
@@ -192,10 +192,7 @@ export default function Level1() {
     <div className="flex flex-row items-start justify-center w-full gap-4 px-4">
       {/* PANTALLA DE CARGA */}
       {showLoading && (
-        <LevelLoader 
-          levelNumber={1} 
-          onComplete={() => setShowLoading(false)} 
-        />
+        <LevelLoader levelNumber={1} onComplete={() => setShowLoading(false)} />
       )}
 
       {/* MODALES */}
@@ -285,7 +282,7 @@ export default function Level1() {
           <h1 className="text-4xl font-bold font-mono text-teto-red mb-8 animate-pulse">
             NIVEL 1
           </h1>
-          
+
           <div className="w-full border-4 border-white bg-black p-6">
             {/* Header con Miku */}
             <div className="flex items-center gap-4 mb-6 pb-4 border-b-2 border-white">
@@ -297,18 +294,22 @@ export default function Level1() {
                 />
               </div>
               <div>
-                <span className="text-teto-red font-mono text-xl font-bold">MIKU</span>
-                <div className="text-green-400 font-mono text-sm">● EN LÍNEA</div>
+                <span className="text-teto-red font-mono text-xl font-bold">
+                  MIKU
+                </span>
+                <div className="text-green-400 font-mono text-sm">
+                  ● EN LÍNEA
+                </div>
               </div>
             </div>
 
             {/* Mensaje */}
             <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 mb-6 min-h-[100px]">
               <p className="font-mono text-white text-lg leading-relaxed">
-                <TypewriterText 
+                <TypewriterText
                   key={`intro-${introStep}`}
-                  text={MIKU_RULES[introStep]} 
-                  voice="miku" 
+                  text={MIKU_RULES[introStep]}
+                  voice="miku"
                   speed={25}
                 />
               </p>
@@ -327,117 +328,121 @@ export default function Level1() {
         <>
           {/* --- ÁREA DE JUEGO (IZQUIERDA) --- */}
           <div className="flex flex-col items-center flex-1 max-w-125">
-        {/* HEADER */}
-        <div className="flex justify-between w-full font-mono mb-2 px-2 text-sm sm:text-base">
-          <span
-            className={`${isCritical ? "text-red-500 animate-ping" : "text-teto-red"} font-bold`}
-          >
-            {isCritical ? "ERROR CRÍTICO" : "NIVEL 1"}
-          </span>
-          <span className={isCritical ? "text-red-500 font-bold text-xl" : ""}>
-            {timeLeft}s
-          </span>
-        </div>
+            {/* HEADER */}
+            <div className="flex justify-between w-full font-mono mb-2 px-2 text-sm sm:text-base">
+              <span
+                className={`${isCritical ? "text-red-500 animate-ping" : "text-teto-red"} font-bold`}
+              >
+                {isCritical ? "ERROR CRÍTICO" : "NIVEL 1"}
+              </span>
+              <span
+                className={isCritical ? "text-red-500 font-bold text-xl" : ""}
+              >
+                {timeLeft}s
+              </span>
+            </div>
 
-        {/* BARRA DE TIEMPO */}
-        <div className="w-full h-3 border-2 border-white mb-4 bg-gray-900 overflow-hidden">
-          <div
-            className={`h-full transition-all duration-1000 ease-linear ${isCritical ? "bg-red-600" : isWarning ? "bg-yellow-400" : "bg-green-400"}`}
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+            {/* BARRA DE TIEMPO */}
+            <div className="w-full h-3 border-2 border-white mb-4 bg-gray-900 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-1000 ease-linear ${isCritical ? "bg-red-600" : isWarning ? "bg-yellow-400" : "bg-green-400"}`}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
 
-        {/* --- TABLERO --- */}
-        <div className="relative w-full aspect-square max-w-137.5 border-4 border-white bg-black overflow-hidden flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-          {/* JUEGO */}
-          <div
-            className={`${boardClass} p-4 bg-gray-800 border-2 border-white rounded-lg transition-all duration-300`}
-          >
-            <div className="grid grid-cols-3 gap-3 sm:gap-4">
-              {cards.map((card, index) => {
-                const isFlipped =
-                  flipped.includes(index) || solved.includes(card.id);
-                const isShaking = shaking.includes(index);
+            {/* --- TABLERO --- */}
+            <div className="relative w-full aspect-square max-w-137.5 border-4 border-white bg-black overflow-hidden flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+              {/* JUEGO */}
+              <div
+                className={`${boardClass} p-4 bg-gray-800 border-2 border-white rounded-lg transition-all duration-300`}
+              >
+                <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                  {cards.map((card, index) => {
+                    const isFlipped =
+                      flipped.includes(index) || solved.includes(card.id);
+                    const isShaking = shaking.includes(index);
 
-                return (
-                  <div
-                    key={card.uniqueId}
-                    onClick={() => handleClick(index)}
-                    className={`
+                    return (
+                      <div
+                        key={card.uniqueId}
+                        onClick={() => handleClick(index)}
+                        className={`
                       w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 cursor-pointer
                       border-2 flex items-center justify-center bg-gray-900 transition-all duration-200
                       ${isShaking ? "card-shake" : ""}
                       ${isFlipped ? "border-teto-red rotate-y-180" : "border-white hover:border-yellow-400"}
                       ${solved.includes(card.id) ? "opacity-20 grayscale border-gray-700" : ""} 
                     `}
-                  >
-                    <div
-                      className={`w-full h-full p-1 ${isFlipped ? "block" : "hidden"}`}
-                    >
-                      <img
-                        src={card.src}
-                        alt="Fumo"
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                          e.target.style.display = "none";
-                          e.target.nextSibling.style.display = "block";
-                        }}
-                      />
-                      <span className="text-xl hidden">🧸</span>
-                    </div>
-                    <div
-                      className={`text-white font-bold text-lg ${isFlipped ? "hidden" : "block"}`}
-                    >
-                      ?
-                    </div>
-                  </div>
-                );
-              })}
+                      >
+                        <div
+                          className={`w-full h-full p-1 ${isFlipped ? "block" : "hidden"}`}
+                        >
+                          <img
+                            src={card.src}
+                            alt="Fumo"
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                              e.target.nextSibling.style.display = "block";
+                            }}
+                          />
+                          <span className="text-xl hidden">🧸</span>
+                        </div>
+                        <div
+                          className={`text-white font-bold text-lg ${isFlipped ? "hidden" : "block"}`}
+                        >
+                          ?
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* --- LIVE CHAT MIKU (DERECHA) --- */}
-      <div className="w-64 flex flex-col border-4 border-white bg-black h-125">
-        {/* Header del chat */}
-        <div className="border-b-2 border-white p-2 flex items-center gap-2 bg-gray-900">
-          <div className="w-10 h-10 border-2 border-teto-red overflow-hidden shrink-0">
-            <img
-              src={mikuImg}
-              alt="Miku"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-teto-red font-mono text-sm font-bold">
-              MIKU
-            </span>
-            <span className="text-green-400 font-mono text-xs">● EN LÍNEA</span>
-          </div>
-        </div>
+          {/* --- LIVE CHAT MIKU (DERECHA) --- */}
+          <div className="w-64 flex flex-col border-4 border-white bg-black h-125">
+            {/* Header del chat */}
+            <div className="border-b-2 border-white p-2 flex items-center gap-2 bg-gray-900">
+              <div className="w-10 h-10 border-2 border-teto-red overflow-hidden shrink-0">
+                <img
+                  src={mikuImg}
+                  alt="Miku"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-teto-red font-mono text-sm font-bold">
+                  MIKU
+                </span>
+                <span className="text-green-400 font-mono text-xs">
+                  ● EN LÍNEA
+                </span>
+              </div>
+            </div>
 
-        {/* Área de mensajes */}
-        <div className="flex-1 p-3 overflow-y-auto flex flex-col gap-2">
-          <div
-            className={`bg-gray-800 border rounded-lg p-2 ${isCritical ? "border-red-500" : "border-gray-600"}`}
-          >
-            <p
-              className={`font-mono text-xs leading-relaxed ${isCritical ? "text-red-400" : "text-white"}`}
-            >
-              * {message}
-            </p>
-          </div>
-        </div>
+            {/* Área de mensajes */}
+            <div className="flex-1 p-3 overflow-y-auto flex flex-col gap-2">
+              <div
+                className={`bg-gray-800 border rounded-lg p-2 ${isCritical ? "border-red-500" : "border-gray-600"}`}
+              >
+                <p
+                  className={`font-mono text-xs leading-relaxed ${isCritical ? "text-red-400" : "text-white"}`}
+                >
+                  * {message}
+                </p>
+              </div>
+            </div>
 
-        {/* Input/Botón área */}
-        <div className="border-t-2 border-white p-2 bg-gray-900">
-          <div className="text-gray-500 font-mono text-xs text-center py-2">
-            {isCritical ? "⚠ SISTEMA INESTABLE" : "Sistema activo..."}
+            {/* Input/Botón área */}
+            <div className="border-t-2 border-white p-2 bg-gray-900">
+              <div className="text-gray-500 font-mono text-xs text-center py-2">
+                {isCritical ? "⚠ SISTEMA INESTABLE" : "Sistema activo..."}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      </>
+        </>
       )}
     </div>
   );

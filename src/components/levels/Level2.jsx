@@ -54,6 +54,18 @@ const CIRNO_INTRO = [
   "Cirno: ¡Prepárate para perder, BAKA! ¡Aquí vamos!",
 ];
 
+// Insultos de Cirno cuando el jugador falla
+const CIRNO_INSULTS = [
+  "Cirno: ¡¡BAKA BAKA BAKA!! ¿En serio elegiste ese? JAJAJA",
+  "Cirno: ¡Qué torpe! Ni un niño de 5 años fallaría así~",
+  "Cirno: *se ríe* ¡¡Eres peor de lo que pensaba!!",
+  "Cirno: ¿Tus ojos funcionan? Porque parece que NO ⑨",
+  "Cirno: ¡JAJAJA! ¡Soy demasiado lista para ti!",
+  "Cirno: ¿Eso es todo lo que tienes? Patéticooo~",
+  "Cirno: ¡¡Imposible que ganes contra LA MÁS FUERTE!!",
+  "Cirno: *baila* ¡Otro fallo más para mi colección!",
+];
+
 export default function Level2() {
   const { nextLevel, takeDamage } = useGame();
   const { playSfx } = useAudio();
@@ -64,7 +76,7 @@ export default function Level2() {
     bgmRef.current = new Audio(level2Bgm);
     bgmRef.current.loop = true;
     bgmRef.current.volume = 0.4;
-    
+
     return () => {
       if (bgmRef.current) {
         bgmRef.current.pause();
@@ -102,7 +114,7 @@ export default function Level2() {
   // Helper para cambiar mensaje y reiniciar typewriter
   const updateMessage = (newMsg) => {
     _setMessage(newMsg);
-    setCurrentTypingId(prev => prev + 1);
+    setCurrentTypingId((prev) => prev + 1);
   };
 
   // Estados de modales
@@ -157,8 +169,8 @@ export default function Level2() {
       // Reordenar el array de vasos aleatoriamente
       setCups((prev) => [...prev].sort(() => Math.random() - 0.5));
 
-      // Reproducir sonido whoosh 
-      playSfx("whosh", 0.6, 1.5);
+      // Reproducir sonido whoosh
+      playSfx("whosh", 0.9, 1.5);
 
       // Hacer que un vaso aleatorio "salte" para efecto dinámico
       setBouncingCup(Math.floor(Math.random() * currentNumCups));
@@ -236,6 +248,11 @@ export default function Level2() {
     } else {
       // Perdió. Restar vida y reiniciar ESTA ronda (no resetear vasos)
       playSfx("baka");
+      
+      // Cirno insulta al jugador
+      const randomInsult = CIRNO_INSULTS[Math.floor(Math.random() * CIRNO_INSULTS.length)];
+      setChatHistory((prev) => [...prev, randomInsult]);
+      
       updateMessage(
         isFinalRound
           ? "¡¡NOOOO!! ¡Tan cerca! -1 vida"
@@ -295,10 +312,7 @@ export default function Level2() {
     <div className="flex flex-row items-start justify-center w-full gap-4 px-4">
       {/* PANTALLA DE CARGA */}
       {showLoading && (
-        <LevelLoader 
-          levelNumber={2} 
-          onComplete={() => setShowLoading(false)} 
-        />
+        <LevelLoader levelNumber={2} onComplete={() => setShowLoading(false)} />
       )}
 
       {/* MODALES */}
@@ -333,7 +347,7 @@ export default function Level2() {
           <h1 className="text-4xl font-bold font-mono text-teto-red mb-8 animate-pulse">
             NIVEL 2
           </h1>
-          
+
           <div className="w-full border-4 border-white bg-black p-6">
             {/* Header con Miku */}
             <div className="flex items-center gap-4 mb-6 pb-4 border-b-2 border-white">
@@ -345,18 +359,22 @@ export default function Level2() {
                 />
               </div>
               <div>
-                <span className="text-teto-red font-mono text-xl font-bold">MIKU</span>
-                <div className="text-green-400 font-mono text-sm">● EN LÍNEA</div>
+                <span className="text-teto-red font-mono text-xl font-bold">
+                  MIKU
+                </span>
+                <div className="text-green-400 font-mono text-sm">
+                  ● EN LÍNEA
+                </div>
               </div>
             </div>
 
             {/* Mensaje */}
             <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 mb-6 min-h-[100px]">
               <p className="font-mono text-white text-lg leading-relaxed">
-                <TypewriterText 
+                <TypewriterText
                   key={`intro-${introStep}`}
-                  text={MIKU_INTRO[introStep]} 
-                  voice="miku" 
+                  text={MIKU_INTRO[introStep]}
+                  voice="miku"
                   speed={25}
                 />
               </p>
@@ -377,7 +395,7 @@ export default function Level2() {
           <h1 className="text-4xl font-bold font-mono text-cyan-400 mb-8 animate-pulse">
             ⑨ CIRNO ⑨
           </h1>
-          
+
           <div className="w-full border-4 border-cyan-400 bg-black p-6">
             {/* Cirno grande con animación de vuelo */}
             <div className="flex justify-center mb-6">
@@ -399,18 +417,22 @@ export default function Level2() {
                 />
               </div>
               <div>
-                <span className="text-cyan-400 font-mono text-xl font-bold">CIRNO</span>
-                <div className="text-cyan-300 font-mono text-sm">⑨ LA MÁS FUERTE</div>
+                <span className="text-cyan-400 font-mono text-xl font-bold">
+                  CIRNO
+                </span>
+                <div className="text-cyan-300 font-mono text-sm">
+                  ⑨ LA MÁS FUERTE
+                </div>
               </div>
             </div>
 
             {/* Mensaje */}
             <div className="bg-cyan-900/30 border border-cyan-400 rounded-lg p-4 mb-6 min-h-25">
               <p className="font-mono text-cyan-100 text-lg leading-relaxed">
-                <TypewriterText 
+                <TypewriterText
                   key={`cirno-intro-${cirnoIntroStep}`}
-                  text={CIRNO_INTRO[cirnoIntroStep]} 
-                  voice="cirno" 
+                  text={CIRNO_INTRO[cirnoIntroStep]}
+                  voice="cirno"
                   speed={30}
                 />
               </p>
@@ -421,225 +443,233 @@ export default function Level2() {
               onClick={handleCirnoDialogue}
               className="w-full py-3 text-cyan-400 font-mono text-lg hover:bg-cyan-400 hover:text-black transition-colors border-2 border-cyan-400"
             >
-              {cirnoIntroStep < CIRNO_INTRO.length - 1 ? "SIGUIENTE →" : "¡EMPEZAR!"}
+              {cirnoIntroStep < CIRNO_INTRO.length - 1
+                ? "SIGUIENTE →"
+                : "¡EMPEZAR!"}
             </button>
           </div>
         </div>
       ) : (
         <>
           {/* --- ÁREA DE JUEGO (IZQUIERDA) --- */}
-          <div className={`flex flex-col items-center flex-1 max-w-[600px] ${gameAppearing ? "animate-magnet-left" : ""}`}>
-        {/* Indicador de progreso */}
-        <div
-          className={`mb-2 text-lg font-mono ${isFinalRound ? "text-yellow-400 animate-pulse text-xl" : "text-gray-300"}`}
-        >
-          {isFinalRound
-            ? "🔥 RONDA FINAL 🔥"
-            : `Ronda ${wins + 1}/${WINS_REQUIRED}`}{" "}
-          | Vasos: {numCups}
-        </div>
-
-        <h2
-          className={`text-xl mb-4 font-bold font-mono ${isFinalRound ? "text-yellow-400 text-2xl animate-bounce" : "text-teto-red"}`}
-        >
-          {showRules
-            ? "NIVEL 2"
-            : gameState === "intro"
-              ? isFinalRound
-                ? "¿Esto será suficiente para ti?"
-                : "¿DÓNDE ESTÁ LA BAGUETTE?"
-              : gameState === "shuffling"
-                ? isFinalRound
-                  ? "¡¡Sus demonios se vinieron dentro de ella!!"
-                  : "BARAJANDO..."
-                : gameState === "picking"
-                  ? isFinalRound
-                    ? "¡¡ELIGE RÁPIDO!!"
-                    : "ELIGE UN VASO"
-                  : selectedCup === winningCup
-                    ? wins >= WINS_REQUIRED
-                      ? "¡¡¡ÉPICO!!!"
-                      : "¡CORRECTO! OTRA VEZ..."
-                    : isFinalRound
-                      ? "¡¡NOOOOO!!"
-                      : "¡FALLASTE!"}
-        </h2>
-
-        {/* Contenedor principal del juego */}
-        <div
-          className={`relative flex flex-col items-center border-4 ${isFinalRound ? "border-yellow-400 shadow-[0_0_30px_rgba(234,179,8,0.5)]" : "border-white"} bg-black p-6 min-h-100 w-full`}
-        >
-          {/* PERSONAJE - Coloca tu asset de fumo aquí */}
           <div
-            className={`
+            className={`flex flex-col items-center flex-1 max-w-[600px] ${gameAppearing ? "animate-magnet-left" : ""}`}
+          >
+            {/* Indicador de progreso */}
+            <div
+              className={`mb-2 text-lg font-mono ${isFinalRound ? "text-yellow-400 animate-pulse text-xl" : "text-gray-300"}`}
+            >
+              {isFinalRound
+                ? "🔥 RONDA FINAL 🔥"
+                : `Ronda ${wins + 1}/${WINS_REQUIRED}`}{" "}
+              | Vasos: {numCups}
+            </div>
+
+            <h2
+              className={`text-xl mb-4 font-bold font-mono ${isFinalRound ? "text-yellow-400 text-2xl animate-bounce" : "text-teto-red"}`}
+            >
+              {showRules
+                ? "NIVEL 2"
+                : gameState === "intro"
+                  ? isFinalRound
+                    ? "¿Esto será suficiente para ti?"
+                    : "¿DÓNDE ESTÁ LA BAGUETTE?"
+                  : gameState === "shuffling"
+                    ? isFinalRound
+                      ? "¡¡Sus demonios se vinieron dentro de ella!!"
+                      : "BARAJANDO..."
+                    : gameState === "picking"
+                      ? isFinalRound
+                        ? "¡¡ELIGE RÁPIDO!!"
+                        : "ELIGE UN VASO"
+                      : selectedCup === winningCup
+                        ? wins >= WINS_REQUIRED
+                          ? "¡¡¡ÉPICO!!!"
+                          : "¡CORRECTO! OTRA VEZ..."
+                        : isFinalRound
+                          ? "¡¡NOOOOO!!"
+                          : "¡FALLASTE!"}
+            </h2>
+
+            {/* Contenedor principal del juego */}
+            <div
+              className={`relative flex flex-col items-center border-4 ${isFinalRound ? "border-yellow-400 shadow-[0_0_30px_rgba(234,179,8,0.5)]" : "border-white"} bg-black p-6 min-h-100 w-full`}
+            >
+              {/* PERSONAJE - Coloca tu asset de fumo aquí */}
+              <div
+                className={`
               relative mb-4 transition-transform duration-100 ease-out
               ${gameState === "picking" ? "animate-float" : ""}
             `}
-            style={{
-              transform:
-                gameState === "shuffling"
-                  ? `translateX(${fumoTransform.x}px) translateY(${fumoTransform.y}px) rotate(${fumoTransform.rotate}deg) scaleX(${fumoTransform.scaleX}) scaleY(${fumoTransform.scaleY}) skewX(${fumoTransform.skew}deg)`
-                  : "translateX(0) translateY(0) rotate(0deg) scaleX(1) scaleY(1) skewX(0deg)",
-            }}
-          >
-            {/* CIRNO FUMO */}
-            <img
-              src={cirnoFumo}
-              alt="Cirno Fumo"
-              className={`w-50 h-50 object-contain drop-shadow-lg ${gameState === "picking" ? "drop-shadow-[0_0_15px_rgba(34,211,238,0.6)]" : ""}`}
-              draggable={false}
-            />
-          </div>
+                style={{
+                  transform:
+                    gameState === "shuffling"
+                      ? `translateX(${fumoTransform.x}px) translateY(${fumoTransform.y}px) rotate(${fumoTransform.rotate}deg) scaleX(${fumoTransform.scaleX}) scaleY(${fumoTransform.scaleY}) skewX(${fumoTransform.skew}deg)`
+                      : "translateX(0) translateY(0) rotate(0deg) scaleX(1) scaleY(1) skewX(0deg)",
+                }}
+              >
+                {/* CIRNO FUMO */}
+                <img
+                  src={cirnoFumo}
+                  alt="Cirno Fumo"
+                  className={`w-50 h-50 object-contain drop-shadow-lg ${gameState === "picking" ? "drop-shadow-[0_0_15px_rgba(34,211,238,0.6)]" : ""}`}
+                  draggable={false}
+                />
+              </div>
 
-          {/* Contenedor de Vasos */}
-          <div className="flex justify-center w-full overflow-visible">
-            <div
-              className="relative h-40 flex items-end"
-              style={{
-                width: `${numCups * (numCups > 6 ? 45 : 80)}px`,
-              }}
-            >
-              {Array.from({ length: numCups }, (_, i) => i).map((cupId) => {
-                // Encontrar la posición actual del vaso en el array
-                const position = cups.indexOf(cupId);
-                // Lógica visual: ¿Deberíamos mostrar el pan?
-                const showBread =
-                  (gameState === "intro" || gameState === "revealed") &&
-                  cupId === winningCup;
-                const isSelected = selectedCup === cupId;
-                const isBouncing = bouncingCup === cupId;
+              {/* Contenedor de Vasos */}
+              <div className="flex justify-center w-full overflow-visible">
+                <div
+                  className="relative h-40 flex items-end"
+                  style={{
+                    width: `${numCups * (numCups > 6 ? 45 : 80)}px`,
+                  }}
+                >
+                  {Array.from({ length: numCups }, (_, i) => i).map((cupId) => {
+                    // Encontrar la posición actual del vaso en el array
+                    const position = cups.indexOf(cupId);
+                    // Lógica visual: ¿Deberíamos mostrar el pan?
+                    const showBread =
+                      (gameState === "intro" || gameState === "revealed") &&
+                      cupId === winningCup;
+                    const isSelected = selectedCup === cupId;
+                    const isBouncing = bouncingCup === cupId;
 
-                // Tamaño de vasos dinámico
-                const cupSize = numCups > 6 ? "w-10 h-12" : "w-20 h-24";
-                const breadSize = numCups > 6 ? "text-xl" : "text-4xl";
+                    // Tamaño de vasos dinámico
+                    const cupSize = numCups > 6 ? "w-10 h-12" : "w-20 h-24";
+                    const breadSize = numCups > 6 ? "text-xl" : "text-4xl";
 
-                // Calcular posición X absoluta basada en el orden en el array
-                const spacing = numCups > 6 ? 45 : 80; // px entre vasos
-                const leftPosition = position * spacing;
+                    // Calcular posición X absoluta basada en el orden en el array
+                    const spacing = numCups > 6 ? 45 : 80; // px entre vasos
+                    const leftPosition = position * spacing;
 
-                return (
-                  <div
-                    key={cupId}
-                    onClick={() => handleCupClick(cupId)}
-                    style={{
-                      position: "absolute",
-                      left: `${leftPosition}px`,
-                      bottom: 0,
-                      transform: `translateY(${isBouncing ? -20 : 0}px)`,
-                    }}
-                    className={`
+                    return (
+                      <div
+                        key={cupId}
+                        onClick={() => handleCupClick(cupId)}
+                        style={{
+                          position: "absolute",
+                          left: `${leftPosition}px`,
+                          bottom: 0,
+                          transform: `translateY(${isBouncing ? -20 : 0}px)`,
+                        }}
+                        className={`
                       ${cupSize} flex flex-col items-center justify-end cursor-pointer
                       transition-all duration-300 ease-in-out
                       ${gameState === "picking" ? "hover:-translate-y-4 hover:scale-110" : ""}
                     `}
-                  >
-                    {/* EL PAN (Sprite) */}
-                    <div
-                      className={`
+                      >
+                        {/* EL PAN (Sprite) */}
+                        <div
+                          className={`
                         absolute bottom-1 ${breadSize} transition-opacity duration-300
                         ${showBread ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}
                       `}
-                    >
-                      🥖
-                    </div>
+                        >
+                          🥖
+                        </div>
 
-                    {/* EL VASO */}
-                    <img
-                      src={glassImg}
-                      alt="Vaso"
-                      draggable={false}
-                      className={`
+                        {/* EL VASO */}
+                        <img
+                          src={glassImg}
+                          alt="Vaso"
+                          draggable={false}
+                          className={`
                         ${cupSize} object-contain z-10
                         transition-transform duration-300 ease-in-out
                         ${showBread ? "-translate-y-8" : "translate-y-0"}
                       `}
-                    />
+                        />
 
-                    {/* Indicador de selección */}
-                    {isSelected && (
-                      <div className="absolute -bottom-6 text-white font-bold animate-bounce text-sm">
-                        ^
+                        {/* Indicador de selección */}
+                        {isSelected && (
+                          <div className="absolute -bottom-6 text-white font-bold animate-bounce text-sm">
+                            ^
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Botón de Inicio dentro del área de juego */}
+              {gameState === "intro" && (
+                <button
+                  onClick={startGame}
+                  className="mt-8 px-6 py-2 border-2 border-white hover:bg-white hover:text-black font-mono animate-pulse"
+                >
+                  [ COMENZAR ]
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Botón de Inicio dentro del área de juego */}
-          {gameState === "intro" && (
-            <button
-              onClick={startGame}
-              className="mt-8 px-6 py-2 border-2 border-white hover:bg-white hover:text-black font-mono animate-pulse"
-            >
-              [ COMENZAR ]
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* --- LIVE CHAT MIKU (DERECHA) --- */}
-      <div className={`w-64 flex flex-col border-4 border-white bg-black h-[500px] ${gameAppearing ? "animate-magnet-right" : ""}`}>
-        {/* Header del chat */}
-        <div className="border-b-2 border-white p-2 flex items-center gap-2 bg-gray-900">
-          <div className="w-10 h-10 border-2 border-teto-red overflow-hidden shrink-0">
-            <img
-              src={mikuImg}
-              alt="Miku"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-teto-red font-mono text-sm font-bold">
-              MIKU
-            </span>
-            <span className="text-green-400 font-mono text-xs">● EN LÍNEA</span>
-          </div>
-        </div>
-
-        {/* Área de mensajes */}
-        <div className="flex-1 p-3 overflow-y-auto flex flex-col gap-2">
-          {/* Mensaje actual del sistema */}
-          <div className="bg-gray-800 border border-gray-600 rounded-lg p-2">
-            <p className="font-mono text-white text-xs leading-relaxed">
-              <TypewriterText 
-                key={`msg-${currentTypingId}`}
-                text={`* ${message}`} 
-                voice="system" 
-                speed={20}
-              />
-            </p>
-          </div>
-
-          {/* Historial de mensajes de Cirno (como si hackeara el chat) */}
-          {chatHistory.map((msg, index) => (
-            <div
-              key={index}
-              className="bg-cyan-900/50 border border-cyan-400 rounded-lg p-2"
-            >
-              <p className="font-mono text-cyan-300 text-xs leading-relaxed">
-                <TypewriterText 
-                  key={`cirno-${index}`}
-                  text={msg} 
-                  voice="cirno" 
-                  speed={35}
+          {/* --- LIVE CHAT MIKU (DERECHA) --- */}
+          <div
+            className={`w-64 flex flex-col border-4 border-white bg-black h-[500px] ${gameAppearing ? "animate-magnet-right" : ""}`}
+          >
+            {/* Header del chat */}
+            <div className="border-b-2 border-white p-2 flex items-center gap-2 bg-gray-900">
+              <div className="w-10 h-10 border-2 border-teto-red overflow-hidden shrink-0">
+                <img
+                  src={mikuImg}
+                  alt="Miku"
+                  className="w-full h-full object-cover"
                 />
-              </p>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-teto-red font-mono text-sm font-bold">
+                  MIKU
+                </span>
+                <span className="text-green-400 font-mono text-xs">
+                  ● EN LÍNEA
+                </span>
+              </div>
             </div>
-          ))}
-        </div>
 
-        {/* Input/Botón área */}
-        <div className="border-t-2 border-white p-2 bg-gray-900">
-          <div className="text-gray-500 font-mono text-xs text-center py-2">
-            {gameState === "shuffling"
-              ? "⚡ Barajando..."
-              : "Sistema activo..."}
+            {/* Área de mensajes */}
+            <div className="flex-1 p-3 overflow-y-auto flex flex-col gap-2">
+              {/* Mensaje actual del sistema */}
+              <div className="bg-gray-800 border border-gray-600 rounded-lg p-2">
+                <p className="font-mono text-white text-xs leading-relaxed">
+                  <TypewriterText
+                    key={`msg-${currentTypingId}`}
+                    text={`* ${message}`}
+                    voice="system"
+                    speed={20}
+                  />
+                </p>
+              </div>
+
+              {/* Historial de mensajes de Cirno (como si hackeara el chat) */}
+              {chatHistory.map((msg, index) => (
+                <div
+                  key={index}
+                  className="bg-cyan-900/50 border border-cyan-400 rounded-lg p-2"
+                >
+                  <p className="font-mono text-cyan-300 text-xs leading-relaxed">
+                    <TypewriterText
+                      key={`cirno-${index}`}
+                      text={msg}
+                      voice="cirno"
+                      speed={35}
+                    />
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Input/Botón área */}
+            <div className="border-t-2 border-white p-2 bg-gray-900">
+              <div className="text-gray-500 font-mono text-xs text-center py-2">
+                {gameState === "shuffling"
+                  ? "⚡ Barajando..."
+                  : "Sistema activo..."}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      </>
+        </>
       )}
     </div>
   );
