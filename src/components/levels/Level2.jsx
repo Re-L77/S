@@ -6,17 +6,40 @@ import glassImg from "../../assets/level2/glass.png";
 import mikuImg from "../../assets/Miku.png";
 
 // Configuración
-const SHUFFLE_DURATION_BASE = 2500; // Duración base del barajado
-const SHUFFLE_SPEED_BASE = 1200; // Velocidad base (ms entre movimientos) - MUY LENTO
-// Por cada acierto: duración +1500ms y velocidad -500ms (MUCHO más rápido)
-const WINS_REQUIRED = 3; // Aciertos necesarios para pasar
+const SHUFFLE_DURATION_BASE = 2000; // Duración base del barajado
+const SHUFFLE_SPEED_BASE = 1000; // Velocidad base (ms entre movimientos)
+const WINS_REQUIRED = 5; // Aciertos necesarios para pasar
+
+// Configuración de vasos por ronda (progresivo y exagerado)
+const getCupCount = (currentWins) => {
+  const cupProgression = [3, 4, 5, 6, 12]; // ¡¡12 VASOS EN LA FINAL!!
+  return cupProgression[Math.min(currentWins, cupProgression.length - 1)];
+};
+
+// Mensajes graciosos por ronda
+const ROUND_MESSAGES = [
+  "Ronda 1: ¡Fácil! Solo 3 vasos~",
+  "Ronda 2: Un poco más... ¡4 vasos!",
+  "Ronda 3: ¿5 vasos? Puedes hacerlo.",
+  "Ronda 4: 6 vasos... Esto se pone serio.",
+  "RONDA FINAL: ¡¡¡12 VASOS!!! ¿¿ESTÁS LISTO??",
+];
+
+// Mensajes de Cirno en el chat (como si hackeara el chat)
+const CIRNO_MESSAGES = [
+  "Cirno: ¿¿Cómo supiste?? ¡Tuviste suerte! 😤",
+  "Cirno: Imposible... ¡SOY LA MÁS FUERTE! Siguiente vez no podrás~",
+  "Cirno: Ok ok... eres bueno. ¡PERO NO TANTO COMO YO! ⑨",
+  "Cirno: *se enoja* ¡¡Deja de adivinar!! >:(",
+  "Cirno: ...No puede ser. ¿¿12 VASOS Y AÚN ASÍ?? 😱",
+];
 
 // Diálogos de Miku
 const MIKU_INTRO = [
   "Miku: ¡Otro desafío! Cirno ha escondido su baguette bajo uno de los vasos.",
   "Regla 1: Observa dónde está el pan antes de que empiece el barajado.",
-  "Regla 2: Necesitas acertar 3 veces para pasar. Cada ronda es más rápida.",
-  "Miku: ¡Confía en tu intuición y sigue el vaso correcto!",
+  "Regla 2: Necesitas acertar 5 VECES para pasar. ¡Cada ronda añade más vasos!",
+  "Miku: La última ronda es... especial. ¡Confía en tu intuición!",
 ];
 
 export default function Level2() {
@@ -24,11 +47,13 @@ export default function Level2() {
 
   // Estado del juego local
   const [cups, setCups] = useState([0, 1, 2]); // Posiciones de los vasos
+  const [numCups, setNumCups] = useState(3); // Número actual de vasos
   const [winningCup, setWinningCup] = useState(1); // El pan empieza en medio (índice 1)
   const [gameState, setGameState] = useState("rules"); // rules, intro, shuffling, picking, revealed
   const [selectedCup, setSelectedCup] = useState(null);
   const [wins, setWins] = useState(0); // Contador de aciertos
   const [bouncingCup, setBouncingCup] = useState(null); // Vaso que está "saltando"
+  const [isFinalRound, setIsFinalRound] = useState(false); // ¡METTATON MODE!
   const [fumoTransform, setFumoTransform] = useState({
     x: 0,
     y: 0,
@@ -41,18 +66,23 @@ export default function Level2() {
   // Estados del chat de Miku
   const [introStep, setIntroStep] = useState(0);
   const [message, setMessage] = useState("Observa el vaso con el pan...");
+  const [chatHistory, setChatHistory] = useState([]); // Historial de mensajes
 
   // Estados de modales
   const [showStartModal, setShowStartModal] = useState(true);
   const [showWinModal, setShowWinModal] = useState(false);
   const [showDamageModal, setShowDamageModal] = useState(false);
 
-  // Calcular dificultad basada en aciertos - MUY AGRESIVO
-  // Ronda 1: 1200ms (muy lento), 2.5s
-  // Ronda 2: 600ms (medio), 4s
-  // Ronda 3: 200ms (MUY rápido), 5.5s
-  const getShuffleSpeed = () => Math.max(200, SHUFFLE_SPEED_BASE - wins * 500);
-  const getShuffleDuration = () => SHUFFLE_DURATION_BASE + wins * 1500;
+  // Calcular dificultad basada en aciertos - PROGRESIVO Y AGRESIVO
+  // Ronda 1: 1000ms, 2s | Ronda 5: 150ms, 4s (CAOS)
+  const getShuffleSpeed = () => {
+    if (wins >= 4) return 100; // FINAL: ¡ULTRA RÁPIDO!
+    return Math.max(200, SHUFFLE_SPEED_BASE - wins * 200);
+  };
+  const getShuffleDuration = () => {
+    if (wins >= 4) return 5000; // FINAL: Más tiempo de caos
+    return SHUFFLE_DURATION_BASE + wins * 500;
+  };
 
   // 1. Iniciar el juego
   const startGame = () => {
@@ -61,6 +91,7 @@ export default function Level2() {
     const startTime = Date.now();
     const duration = getShuffleDuration();
     const speed = getShuffleSpeed();
+    const currentNumCups = numCups;
 
     // Función recursiva con velocidad constante por ronda
     const shuffle = () => {
@@ -78,7 +109,7 @@ export default function Level2() {
           skew: 0,
         });
         setGameState("picking");
-        setMessage("¿Dónde está el pan? ¡Elige un vaso!");
+        setMessage(isFinalRound ? "¡¿DÓNDE ESTÁ?! ¡ELIGE RÁPIDO!" : "¿Dónde está el pan? ¡Elige un vaso!");
         return;
       }
 
@@ -86,18 +117,19 @@ export default function Level2() {
       setCups((prev) => [...prev].sort(() => Math.random() - 0.5));
 
       // Hacer que un vaso aleatorio "salte" para efecto dinámico
-      setBouncingCup(Math.floor(Math.random() * 3));
-      setTimeout(() => setBouncingCup(null), 300);
+      setBouncingCup(Math.floor(Math.random() * currentNumCups));
+      setTimeout(() => setBouncingCup(null), Math.min(200, speed / 2));
 
       // CARICATURA TOTAL - squash & stretch + movimientos locos
       const isSquash = Math.random() > 0.5;
+      const intensity = isFinalRound ? 2 : 1; // Más loco en la ronda final
       setFumoTransform({
-        x: (Math.random() - 0.5) * 200, // -100 a +100 px (MUY exagerado)
-        y: (Math.random() - 0.5) * 80, // -40 a +40 px
-        rotate: (Math.random() - 0.5) * 60, // -30 a +30 grados (LOCO)
-        scaleX: isSquash ? 1.3 : 0.7, // Squash horizontal / vertical
-        scaleY: isSquash ? 0.7 : 1.3, // Stretch opuesto
-        skew: (Math.random() - 0.5) * 20, // -10 a +10 grados de inclinación
+        x: (Math.random() - 0.5) * 200 * intensity,
+        y: (Math.random() - 0.5) * 80 * intensity,
+        rotate: (Math.random() - 0.5) * 60 * intensity,
+        scaleX: isSquash ? 1.3 + (intensity - 1) * 0.3 : 0.7 - (intensity - 1) * 0.2,
+        scaleY: isSquash ? 0.7 - (intensity - 1) * 0.2 : 1.3 + (intensity - 1) * 0.3,
+        skew: (Math.random() - 0.5) * 20 * intensity,
       });
 
       setTimeout(shuffle, speed);
@@ -116,33 +148,47 @@ export default function Level2() {
     if (cupId === winningCup) {
       const newWins = wins + 1;
       setWins(newWins);
+      
+      // Cirno manda mensaje al chat (como hackeando)
+      const cirnoMsg = CIRNO_MESSAGES[Math.min(newWins - 1, CIRNO_MESSAGES.length - 1)];
+      setChatHistory(prev => [...prev, cirnoMsg]);
 
       if (newWins >= WINS_REQUIRED) {
         // ¡Ganó el nivel! Esperar y pasar
-        setMessage("¡NIVEL COMPLETADO! Bien hecho~");
+        setMessage("¡¡¡NIVEL COMPLETADO!!! ¡INCREÍBLE!");
         setShowWinModal(true);
       } else {
-        // Acierto pero necesita más. Nueva ronda
-        setMessage(`¡Correcto! ${newWins}/${WINS_REQUIRED} - ¡Otra vez!`);
+        // Acierto pero necesita más. Nueva ronda con más vasos
+        const nextCupCount = getCupCount(newWins);
+        const isNextFinal = newWins === WINS_REQUIRED - 1;
+        
+        setMessage(ROUND_MESSAGES[newWins] || `¡Correcto! ${newWins}/${WINS_REQUIRED}`);
+        
         setTimeout(() => {
+          // Preparar siguiente ronda
+          const newCupsArray = Array.from({ length: nextCupCount }, (_, i) => i);
+          setCups(newCupsArray);
+          setNumCups(nextCupCount);
+          setIsFinalRound(isNextFinal);
           setGameState("intro");
           setSelectedCup(null);
-          setCups([0, 1, 2]);
-          setMessage("Observa el vaso con el pan...");
           // Colocar el pan en una posición aleatoria
-          setWinningCup(Math.floor(Math.random() * 3));
+          setWinningCup(Math.floor(Math.random() * nextCupCount));
         }, 1500);
       }
     } else {
-      // Perdió. Restar vida y reiniciar este nivel
-      setMessage("¡Fallaste! -1 vida. Inténtalo de nuevo.");
+      // Perdió. Restar vida y reiniciar ESTA ronda (no resetear vasos)
+      setMessage(isFinalRound ? "¡¡NOOOO!! ¡Tan cerca! -1 vida" : "¡Fallaste! -1 vida. Inténtalo de nuevo.");
       setShowDamageModal(true);
       takeDamage();
       setTimeout(() => {
         setGameState("intro"); // Reiniciar ronda
         setSelectedCup(null);
-        setMessage("Observa el vaso con el pan...");
-        setCups([0, 1, 2]); // Resetear posiciones
+        setMessage(isFinalRound ? "¡¡Otra oportunidad!! Observa bien..." : "Observa el vaso con el pan...");
+        // Mantener el mismo número de vasos pero reordenar
+        const currentCupsArray = Array.from({ length: numCups }, (_, i) => i);
+        setCups(currentCupsArray);
+        setWinningCup(Math.floor(Math.random() * numCups));
       }, 1500);
     }
   };
@@ -166,7 +212,7 @@ export default function Level2() {
         onClose={() => setShowStartModal(false)}
         type="start"
         title="NIVEL 2"
-        subtitle="El Juego del Vaso - Encuentra dónde está la baguette de Cirno"
+        subtitle="El Juego del Vaso - ¡5 rondas! Cada vez más vasos y más rápido..."
         buttonText="¡EMPEZAR!"
       />
       <GameModal
@@ -176,8 +222,8 @@ export default function Level2() {
           nextLevel();
         }}
         type="win"
-        title="¡NIVEL COMPLETADO!"
-        subtitle="Has encontrado la baguette 3 veces"
+        title="¡¡INCREÍBLE!!"
+        subtitle="¡¡Sobreviviste a los 12 VASOS!! Eres un genio."
         buttonText="SIGUIENTE NIVEL"
       />
       <GameModal
@@ -185,36 +231,36 @@ export default function Level2() {
         onClose={() => setShowDamageModal(false)}
         type="damage"
         title="-1 VIDA"
-        subtitle="¡Ese no era el vaso correcto!"
+        subtitle={isFinalRound ? "¡¡NOOO!! ¡Entre 12 vasos y elegiste ese!" : "¡Ese no era el vaso correcto!"}
         buttonText="CONTINUAR"
         autoClose={2000}
       />
 
       {/* --- ÁREA DE JUEGO (IZQUIERDA) --- */}
-      <div className="flex flex-col items-center flex-1 max-w-[550px]">
+      <div className="flex flex-col items-center flex-1 max-w-[600px]">
         {/* Indicador de progreso */}
-        <div className="mb-2 text-lg font-mono text-gray-300">
-          Aciertos: {wins}/{WINS_REQUIRED}
+        <div className={`mb-2 text-lg font-mono ${isFinalRound ? 'text-yellow-400 animate-pulse text-xl' : 'text-gray-300'}`}>
+          {isFinalRound ? '🔥 RONDA FINAL 🔥' : `Ronda ${wins + 1}/${WINS_REQUIRED}`} | Vasos: {numCups}
         </div>
 
-        <h2 className="text-xl mb-4 text-teto-red font-bold font-mono">
+        <h2 className={`text-xl mb-4 font-bold font-mono ${isFinalRound ? 'text-yellow-400 text-2xl animate-bounce' : 'text-teto-red'}`}>
           {showRules
             ? "NIVEL 2"
             : gameState === "intro"
-              ? "¿DÓNDE ESTÁ LA BAGUETTE?"
+              ? isFinalRound ? "🎭 ¿¿PUEDES CON 12 VASOS?? 🎭" : "¿DÓNDE ESTÁ LA BAGUETTE?"
               : gameState === "shuffling"
-                ? "BARAJANDO..."
+                ? isFinalRound ? "🌀 ¡¡CAOS TOTAL!! 🌀" : "BARAJANDO..."
                 : gameState === "picking"
-                  ? "ELIGE UN VASO"
+                  ? isFinalRound ? "😱 ¡¡ELIGE RÁPIDO!! 😱" : "ELIGE UN VASO"
                   : selectedCup === winningCup
                     ? wins >= WINS_REQUIRED
-                      ? "¡NIVEL COMPLETADO!"
+                      ? "🎉 ¡¡¡ÉPICO!!! 🎉"
                       : "¡CORRECTO! OTRA VEZ..."
-                    : "¡FALLASTE!"}
+                    : isFinalRound ? "💀 ¡¡NOOOOO!! 💀" : "¡FALLASTE!"}
         </h2>
 
         {/* Contenedor principal del juego */}
-        <div className="relative flex flex-col items-center border-4 border-white bg-black p-6 min-h-[400px] w-full">
+        <div className={`relative flex flex-col items-center border-4 ${isFinalRound ? 'border-yellow-400 shadow-[0_0_30px_rgba(234,179,8,0.5)]' : 'border-white'} bg-black p-6 min-h-[400px] w-full`}>
           {/* Cubierta de reglas */}
           {showRules && (
             <div className="absolute inset-0 bg-black/90 z-10 flex flex-col items-center justify-center gap-4">
@@ -246,9 +292,14 @@ export default function Level2() {
           </div>
 
           {/* Contenedor de Vasos */}
-          <div className="flex justify-center w-full">
-            <div className="relative h-40" style={{ width: "272px" }}>
-              {[0, 1, 2].map((cupId) => {
+          <div className="flex justify-center w-full overflow-visible">
+            <div 
+              className="relative h-40 flex items-end"
+              style={{ 
+                width: `${numCups * (numCups > 6 ? 45 : 80)}px`,
+              }}
+            >
+              {Array.from({ length: numCups }, (_, i) => i).map((cupId) => {
                 // Encontrar la posición actual del vaso en el array
                 const position = cups.indexOf(cupId);
                 // Lógica visual: ¿Deberíamos mostrar el pan?
@@ -258,27 +309,36 @@ export default function Level2() {
                 const isSelected = selectedCup === cupId;
                 const isBouncing = bouncingCup === cupId;
 
-                // Calcular posición X: 80px vaso + 16px gap = 96px por slot
-                const xOffset = position * 96;
+                // Tamaño de vasos dinámico
+                const cupSize = numCups > 6 ? 'w-10 h-12' : 'w-20 h-24';
+                const breadSize = numCups > 6 ? 'text-xl' : 'text-4xl';
+                
+                // Calcular posición X absoluta basada en el orden en el array
+                const spacing = numCups > 6 ? 45 : 80; // px entre vasos
+                const leftPosition = position * spacing;
 
                 return (
                   <div
                     key={cupId}
                     onClick={() => handleCupClick(cupId)}
-                    style={{ left: `${xOffset}px` }}
+                    style={{ 
+                      position: 'absolute',
+                      left: `${leftPosition}px`,
+                      bottom: 0,
+                      transform: `translateY(${isBouncing ? -20 : 0}px)`,
+                    }}
                     className={`
-                  absolute bottom-0 w-20 h-24 flex flex-col items-center justify-end cursor-pointer
-                  transition-all duration-500 ease-in-out
-                  ${gameState === "picking" ? "hover:-translate-y-2" : ""}
-                  ${isBouncing ? "-translate-y-8" : ""}
-                `}
+                      ${cupSize} flex flex-col items-center justify-end cursor-pointer
+                      transition-all duration-300 ease-in-out
+                      ${gameState === "picking" ? "hover:-translate-y-4 hover:scale-110" : ""}
+                    `}
                   >
                     {/* EL PAN (Sprite) */}
                     <div
                       className={`
-                  absolute bottom-2 text-4xl transition-opacity duration-300
-                  ${showBread ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}
-                `}
+                        absolute bottom-1 ${breadSize} transition-opacity duration-300
+                        ${showBread ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}
+                      `}
                     >
                       🥖
                     </div>
@@ -289,15 +349,15 @@ export default function Level2() {
                       alt="Vaso"
                       draggable={false}
                       className={`
-                        w-20 h-24 object-contain z-10
-                        transition-transform duration-500 ease-in-out
-                        ${showBread ? "-translate-y-12" : "translate-y-0"}
+                        ${cupSize} object-contain z-10
+                        transition-transform duration-300 ease-in-out
+                        ${showBread ? "-translate-y-8" : "translate-y-0"}
                       `}
                     />
 
                     {/* Indicador de selección */}
                     {isSelected && (
-                      <div className="absolute -bottom-8 text-white font-bold animate-bounce">
+                      <div className="absolute -bottom-6 text-white font-bold animate-bounce text-sm">
                         ^
                       </div>
                     )}
@@ -347,11 +407,26 @@ export default function Level2() {
               </p>
             </div>
           ) : (
-            <div className="bg-gray-800 border border-gray-600 rounded-lg p-2">
-              <p className="font-mono text-white text-xs leading-relaxed">
-                * {message}
-              </p>
-            </div>
+            <>
+              {/* Mensaje actual del sistema */}
+              <div className="bg-gray-800 border border-gray-600 rounded-lg p-2">
+                <p className="font-mono text-white text-xs leading-relaxed">
+                  * {message}
+                </p>
+              </div>
+              
+              {/* Historial de mensajes de Cirno (como si hackeara el chat) */}
+              {chatHistory.map((msg, index) => (
+                <div 
+                  key={index} 
+                  className="bg-cyan-900/50 border border-cyan-400 rounded-lg p-2 animate-pulse"
+                >
+                  <p className="font-mono text-cyan-300 text-xs leading-relaxed">
+                    {msg}
+                  </p>
+                </div>
+              ))}
+            </>
           )}
         </div>
 

@@ -3,7 +3,7 @@ import { createContext, useState, useContext } from "react";
 const GameContext = createContext();
 
 export const GameProvider = ({ children }) => {
-  const [level, setLevel] = useState(1); // Nivel actual
+  const [level, setLevel] = useState(2); // Nivel actual
   const [lives, setLives] = useState(4); // Vidas globales (Miku)
   const [gameState, setGameState] = useState("playing"); // playing, won, gameover
 
