@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGame } from "../../context/GameContext";
 import GameModal from "../ui/GameModal";
+import TypewriterText from "../ui/TypewriterText";
 import cirnoFumo from "../../assets/level2/cirno.png";
 import glassImg from "../../assets/level2/glass.png";
 import mikuImg from "../../assets/Miku.png";
@@ -27,11 +28,11 @@ const ROUND_MESSAGES = [
 
 // Mensajes de Cirno en el chat (como si hackeara el chat)
 const CIRNO_MESSAGES = [
-  "Cirno: ¿¿Cómo supiste?? ¡Tuviste suerte! 😤",
-  "Cirno: Imposible... ¡SOY LA MÁS FUERTE! Siguiente vez no podrás~",
-  "Cirno: Ok ok... eres bueno. ¡PERO NO TANTO COMO YO! ⑨",
-  "Cirno: *se enoja* ¡¡Deja de adivinar!! >:(",
-  "Cirno: ...No puede ser. ¿¿12 VASOS Y AÚN ASÍ?? 😱",
+  "Cirno: ¿¿Cómo supiste??",
+  "Cirno: Imposible... ¡SOY LA MÁS FUERTE! te la pondré tan dura que no darán ganas de sentarte~",
+  "Cirno: A poco si muy oni-chan?  ",
+  "Cirno: *se enoja* ¡¡Deja de adivinar BAKAAAA!! :'''v, usaré todo mi poder para derrotarte.",
+  "Cirno: *Momento zad* perdoname teto, no pude protegerte...",
 ];
 
 // Diálogos de Miku
@@ -65,8 +66,15 @@ export default function Level2() {
 
   // Estados del chat de Miku
   const [introStep, setIntroStep] = useState(0);
-  const [message, setMessage] = useState("Observa el vaso con el pan...");
+  const [message, _setMessage] = useState("Observa el vaso con el pan...");
   const [chatHistory, setChatHistory] = useState([]); // Historial de mensajes
+  const [currentTypingId, setCurrentTypingId] = useState(0); // Para forzar re-render del typewriter
+
+  // Helper para cambiar mensaje y reiniciar typewriter
+  const updateMessage = (newMsg) => {
+    _setMessage(newMsg);
+    setCurrentTypingId(prev => prev + 1);
+  };
 
   // Estados de modales
   const [showStartModal, setShowStartModal] = useState(true);
@@ -87,7 +95,7 @@ export default function Level2() {
   // 1. Iniciar el juego
   const startGame = () => {
     setGameState("shuffling");
-    setMessage("¡Barajando! Sigue el vaso...");
+    updateMessage("¡Barajando! Sigue el vaso...");
     const startTime = Date.now();
     const duration = getShuffleDuration();
     const speed = getShuffleSpeed();
@@ -109,7 +117,11 @@ export default function Level2() {
           skew: 0,
         });
         setGameState("picking");
-        setMessage(isFinalRound ? "¡¿DÓNDE ESTÁ?! ¡ELIGE RÁPIDO!" : "¿Dónde está el pan? ¡Elige un vaso!");
+        updateMessage(
+          isFinalRound
+            ? "¡¿DÓNDE ESTÁ?! ¡ELIGE RÁPIDO!"
+            : "¿Dónde está el pan? ¡Elige un vaso!",
+        );
         return;
       }
 
@@ -127,8 +139,12 @@ export default function Level2() {
         x: (Math.random() - 0.5) * 200 * intensity,
         y: (Math.random() - 0.5) * 80 * intensity,
         rotate: (Math.random() - 0.5) * 60 * intensity,
-        scaleX: isSquash ? 1.3 + (intensity - 1) * 0.3 : 0.7 - (intensity - 1) * 0.2,
-        scaleY: isSquash ? 0.7 - (intensity - 1) * 0.2 : 1.3 + (intensity - 1) * 0.3,
+        scaleX: isSquash
+          ? 1.3 + (intensity - 1) * 0.3
+          : 0.7 - (intensity - 1) * 0.2,
+        scaleY: isSquash
+          ? 0.7 - (intensity - 1) * 0.2
+          : 1.3 + (intensity - 1) * 0.3,
         skew: (Math.random() - 0.5) * 20 * intensity,
       });
 
@@ -148,25 +164,31 @@ export default function Level2() {
     if (cupId === winningCup) {
       const newWins = wins + 1;
       setWins(newWins);
-      
+
       // Cirno manda mensaje al chat (como hackeando)
-      const cirnoMsg = CIRNO_MESSAGES[Math.min(newWins - 1, CIRNO_MESSAGES.length - 1)];
-      setChatHistory(prev => [...prev, cirnoMsg]);
+      const cirnoMsg =
+        CIRNO_MESSAGES[Math.min(newWins - 1, CIRNO_MESSAGES.length - 1)];
+      setChatHistory((prev) => [...prev, cirnoMsg]);
 
       if (newWins >= WINS_REQUIRED) {
         // ¡Ganó el nivel! Esperar y pasar
-        setMessage("¡¡¡NIVEL COMPLETADO!!! ¡INCREÍBLE!");
+        updateMessage("¡¡¡NIVEL COMPLETADO!!! ¡INCREÍBLE!");
         setShowWinModal(true);
       } else {
         // Acierto pero necesita más. Nueva ronda con más vasos
         const nextCupCount = getCupCount(newWins);
         const isNextFinal = newWins === WINS_REQUIRED - 1;
-        
-        setMessage(ROUND_MESSAGES[newWins] || `¡Correcto! ${newWins}/${WINS_REQUIRED}`);
-        
+
+        updateMessage(
+          ROUND_MESSAGES[newWins] || `¡Correcto! ${newWins}/${WINS_REQUIRED}`,
+        );
+
         setTimeout(() => {
           // Preparar siguiente ronda
-          const newCupsArray = Array.from({ length: nextCupCount }, (_, i) => i);
+          const newCupsArray = Array.from(
+            { length: nextCupCount },
+            (_, i) => i,
+          );
           setCups(newCupsArray);
           setNumCups(nextCupCount);
           setIsFinalRound(isNextFinal);
@@ -178,13 +200,21 @@ export default function Level2() {
       }
     } else {
       // Perdió. Restar vida y reiniciar ESTA ronda (no resetear vasos)
-      setMessage(isFinalRound ? "¡¡NOOOO!! ¡Tan cerca! -1 vida" : "¡Fallaste! -1 vida. Inténtalo de nuevo.");
+      updateMessage(
+        isFinalRound
+          ? "¡¡NOOOO!! ¡Tan cerca! -1 vida"
+          : "¡Fallaste! -1 vida. Inténtalo de nuevo.",
+      );
       setShowDamageModal(true);
       takeDamage();
       setTimeout(() => {
         setGameState("intro"); // Reiniciar ronda
         setSelectedCup(null);
-        setMessage(isFinalRound ? "¡¡Otra oportunidad!! Observa bien..." : "Observa el vaso con el pan...");
+        updateMessage(
+          isFinalRound
+            ? "¡¡Otra oportunidad!! Observa bien..."
+            : "Observa el vaso con el pan...",
+        );
         // Mantener el mismo número de vasos pero reordenar
         const currentCupsArray = Array.from({ length: numCups }, (_, i) => i);
         setCups(currentCupsArray);
@@ -231,7 +261,11 @@ export default function Level2() {
         onClose={() => setShowDamageModal(false)}
         type="damage"
         title="-1 VIDA"
-        subtitle={isFinalRound ? "¡¡NOOO!! ¡Entre 12 vasos y elegiste ese!" : "¡Ese no era el vaso correcto!"}
+        subtitle={
+          isFinalRound
+            ? "¡¡NOOO!! ¡Entre 12 vasos y elegiste ese!"
+            : "¡Ese no era el vaso correcto!"
+        }
         buttonText="CONTINUAR"
         autoClose={2000}
       />
@@ -239,28 +273,45 @@ export default function Level2() {
       {/* --- ÁREA DE JUEGO (IZQUIERDA) --- */}
       <div className="flex flex-col items-center flex-1 max-w-[600px]">
         {/* Indicador de progreso */}
-        <div className={`mb-2 text-lg font-mono ${isFinalRound ? 'text-yellow-400 animate-pulse text-xl' : 'text-gray-300'}`}>
-          {isFinalRound ? '🔥 RONDA FINAL 🔥' : `Ronda ${wins + 1}/${WINS_REQUIRED}`} | Vasos: {numCups}
+        <div
+          className={`mb-2 text-lg font-mono ${isFinalRound ? "text-yellow-400 animate-pulse text-xl" : "text-gray-300"}`}
+        >
+          {isFinalRound
+            ? "🔥 RONDA FINAL 🔥"
+            : `Ronda ${wins + 1}/${WINS_REQUIRED}`}{" "}
+          | Vasos: {numCups}
         </div>
 
-        <h2 className={`text-xl mb-4 font-bold font-mono ${isFinalRound ? 'text-yellow-400 text-2xl animate-bounce' : 'text-teto-red'}`}>
+        <h2
+          className={`text-xl mb-4 font-bold font-mono ${isFinalRound ? "text-yellow-400 text-2xl animate-bounce" : "text-teto-red"}`}
+        >
           {showRules
             ? "NIVEL 2"
             : gameState === "intro"
-              ? isFinalRound ? "🎭 ¿¿PUEDES CON 12 VASOS?? 🎭" : "¿DÓNDE ESTÁ LA BAGUETTE?"
+              ? isFinalRound
+                ? "¿Esto será suficiente para ti?"
+                : "¿DÓNDE ESTÁ LA BAGUETTE?"
               : gameState === "shuffling"
-                ? isFinalRound ? "🌀 ¡¡CAOS TOTAL!! 🌀" : "BARAJANDO..."
+                ? isFinalRound
+                  ? "¡¡Sus demonios se vinieron dentro de ella!!"
+                  : "BARAJANDO..."
                 : gameState === "picking"
-                  ? isFinalRound ? "😱 ¡¡ELIGE RÁPIDO!! 😱" : "ELIGE UN VASO"
+                  ? isFinalRound
+                    ? "¡¡ELIGE RÁPIDO!!"
+                    : "ELIGE UN VASO"
                   : selectedCup === winningCup
                     ? wins >= WINS_REQUIRED
-                      ? "🎉 ¡¡¡ÉPICO!!! 🎉"
+                      ? "¡¡¡ÉPICO!!!"
                       : "¡CORRECTO! OTRA VEZ..."
-                    : isFinalRound ? "💀 ¡¡NOOOOO!! 💀" : "¡FALLASTE!"}
+                    : isFinalRound
+                      ? "¡¡NOOOOO!!"
+                      : "¡FALLASTE!"}
         </h2>
 
         {/* Contenedor principal del juego */}
-        <div className={`relative flex flex-col items-center border-4 ${isFinalRound ? 'border-yellow-400 shadow-[0_0_30px_rgba(234,179,8,0.5)]' : 'border-white'} bg-black p-6 min-h-[400px] w-full`}>
+        <div
+          className={`relative flex flex-col items-center border-4 ${isFinalRound ? "border-yellow-400 shadow-[0_0_30px_rgba(234,179,8,0.5)]" : "border-white"} bg-black p-6 min-h-[400px] w-full`}
+        >
           {/* Cubierta de reglas */}
           {showRules && (
             <div className="absolute inset-0 bg-black/90 z-10 flex flex-col items-center justify-center gap-4">
@@ -293,9 +344,9 @@ export default function Level2() {
 
           {/* Contenedor de Vasos */}
           <div className="flex justify-center w-full overflow-visible">
-            <div 
+            <div
               className="relative h-40 flex items-end"
-              style={{ 
+              style={{
                 width: `${numCups * (numCups > 6 ? 45 : 80)}px`,
               }}
             >
@@ -310,9 +361,9 @@ export default function Level2() {
                 const isBouncing = bouncingCup === cupId;
 
                 // Tamaño de vasos dinámico
-                const cupSize = numCups > 6 ? 'w-10 h-12' : 'w-20 h-24';
-                const breadSize = numCups > 6 ? 'text-xl' : 'text-4xl';
-                
+                const cupSize = numCups > 6 ? "w-10 h-12" : "w-20 h-24";
+                const breadSize = numCups > 6 ? "text-xl" : "text-4xl";
+
                 // Calcular posición X absoluta basada en el orden en el array
                 const spacing = numCups > 6 ? 45 : 80; // px entre vasos
                 const leftPosition = position * spacing;
@@ -321,8 +372,8 @@ export default function Level2() {
                   <div
                     key={cupId}
                     onClick={() => handleCupClick(cupId)}
-                    style={{ 
-                      position: 'absolute',
+                    style={{
+                      position: "absolute",
                       left: `${leftPosition}px`,
                       bottom: 0,
                       transform: `translateY(${isBouncing ? -20 : 0}px)`,
@@ -403,7 +454,12 @@ export default function Level2() {
           {showRules ? (
             <div className="bg-gray-800 border border-gray-600 rounded-lg p-2">
               <p className="font-mono text-white text-xs leading-relaxed">
-                {MIKU_INTRO[introStep]}
+                <TypewriterText 
+                  key={`intro-${introStep}`}
+                  text={MIKU_INTRO[introStep]} 
+                  voice="miku" 
+                  speed={25}
+                />
               </p>
             </div>
           ) : (
@@ -411,18 +467,28 @@ export default function Level2() {
               {/* Mensaje actual del sistema */}
               <div className="bg-gray-800 border border-gray-600 rounded-lg p-2">
                 <p className="font-mono text-white text-xs leading-relaxed">
-                  * {message}
+                  <TypewriterText 
+                    key={`msg-${currentTypingId}`}
+                    text={`* ${message}`} 
+                    voice="system" 
+                    speed={20}
+                  />
                 </p>
               </div>
-              
+
               {/* Historial de mensajes de Cirno (como si hackeara el chat) */}
               {chatHistory.map((msg, index) => (
-                <div 
-                  key={index} 
-                  className="bg-cyan-900/50 border border-cyan-400 rounded-lg p-2 animate-pulse"
+                <div
+                  key={index}
+                  className="bg-cyan-900/50 border border-cyan-400 rounded-lg p-2"
                 >
                   <p className="font-mono text-cyan-300 text-xs leading-relaxed">
-                    {msg}
+                    <TypewriterText 
+                      key={`cirno-${index}`}
+                      text={msg} 
+                      voice="cirno" 
+                      speed={35}
+                    />
                   </p>
                 </div>
               ))}
