@@ -7,12 +7,12 @@ const Layout = ({ children }) => {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center font-mono p-4">
       {/* Marco del juego */}
-      <div className="w-full max-w-2xl border-4 border-white p-6 relative min-h-[500px] flex flex-col">
+      <div className="w-full max-w-6xl border-4 border-white p-8 relative min-h-[600px] flex flex-col">
         {/* Header: Vidas y Nivel */}
         <div className="flex justify-between items-center mb-6 border-b-2 border-gray-700 pb-2">
           <div className="text-xl">LVL {level}</div>
           <div className="flex gap-1">
-            {[...Array(3)].map((_, i) => (
+            {[...Array(4)].map((_, i) => (
               <Heart
                 key={i}
                 fill={i < lives ? "#ff3366" : "black"}

@@ -1,6 +1,7 @@
 import { useGame } from "../context/GameContext";
 import LevelPlaceholder from "./levels/LevelPlaceholder";
 
+import Level2 from "./levels/Level2";
 // IMPORTANTE: Aquí importarás tus niveles reales cuando los crees
 // import Level1Memorama from './levels/Level1Memorama';
 
@@ -28,7 +29,7 @@ const GameManager = () => {
       // return <Level1Memorama />; // Descomentarás esto luego
       return <LevelPlaceholder name="Nivel 1: Memorama" />;
     case 2:
-      return <LevelPlaceholder name="Nivel 2: Vasos" />;
+      return <Level2 />;
     case 3:
       return <LevelPlaceholder name="Nivel 3: Carrera" />;
     // ... añade casos hasta el 7
