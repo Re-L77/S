@@ -26,11 +26,6 @@ const Layout = ({ children }) => {
         <div className="flex-1 flex flex-col items-center justify-center">
           {children}
         </div>
-
-        {/* Caja de Texto (Narrativa) */}
-        <div className="mt-6 border-2 border-white p-4 min-h-[80px] text-sm typing-effect">
-          <p>Miku entra a la zona segura de Teto...</p>
-        </div>
       </div>
     </div>
   );
