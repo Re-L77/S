@@ -1,4 +1,5 @@
 import { useGame } from "../context/GameContext";
+import Level1 from "./levels/level1";
 import LevelPlaceholder from "./levels/LevelPlaceholder";
 
 import Level2 from "./levels/Level2";
@@ -27,7 +28,7 @@ const GameManager = () => {
   switch (level) {
     case 1:
       // return <Level1Memorama />; // Descomentarás esto luego
-      return <LevelPlaceholder name="Nivel 1: Memorama" />;
+      return <Level1 name="Nivel 1: Memorama" />;
     case 2:
       return <Level2 />;
     case 3:
