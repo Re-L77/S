@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useGame } from "../../context/GameContext";
+import { useAudio } from "../../context/AudioContext";
 import GameModal from "../ui/GameModal";
 import TypewriterText from "../ui/TypewriterText";
 import LevelLoader from "../ui/LevelLoader";
 import cirnoFumo from "../../assets/level2/cirno.png";
 import glassImg from "../../assets/level2/glass.png";
 import mikuImg from "../../assets/Miku.png";
+import level2Bgm from "../../assets/sound/levels/level2.mp3";
 
 // Configuración
 const SHUFFLE_DURATION_BASE = 2000; // Duración base del barajado
@@ -44,14 +46,38 @@ const MIKU_INTRO = [
   "Miku: La última ronda es... especial. ¡Confía en tu intuición!",
 ];
 
+// Diálogos de presentación de Cirno
+const CIRNO_INTRO = [
+  "Cirno: ¡¡ATENCIÓN!! ¡La hada más fuerte de Gensokyo ha llegado! ⑨",
+  "Cirno: ¿Crees que puedes encontrar MI baguette? ¡JA! ¡Ingenuo!",
+  "Cirno: Soy tan inteligente que escondí el pan donde NADIE lo encontrará~",
+  "Cirno: ¡Prepárate para perder, BAKA! ¡Aquí vamos!",
+];
+
 export default function Level2() {
   const { nextLevel, takeDamage } = useGame();
+  const { playSfx } = useAudio();
+  const bgmRef = useRef(null);
+
+  // Inicializar audio de fondo
+  useEffect(() => {
+    bgmRef.current = new Audio(level2Bgm);
+    bgmRef.current.loop = true;
+    bgmRef.current.volume = 0.4;
+    
+    return () => {
+      if (bgmRef.current) {
+        bgmRef.current.pause();
+        bgmRef.current = null;
+      }
+    };
+  }, []);
 
   // Estado del juego local
   const [cups, setCups] = useState([0, 1, 2]); // Posiciones de los vasos
   const [numCups, setNumCups] = useState(3); // Número actual de vasos
   const [winningCup, setWinningCup] = useState(1); // El pan empieza en medio (índice 1)
-  const [gameState, setGameState] = useState("rules"); // rules, intro, shuffling, picking, revealed
+  const [gameState, setGameState] = useState("rules"); // rules, cirnoIntro, intro, shuffling, picking, revealed
   const [selectedCup, setSelectedCup] = useState(null);
   const [wins, setWins] = useState(0); // Contador de aciertos
   const [bouncingCup, setBouncingCup] = useState(null); // Vaso que está "saltando"
@@ -67,6 +93,8 @@ export default function Level2() {
 
   // Estados del chat de Miku
   const [introStep, setIntroStep] = useState(0);
+  const [cirnoIntroStep, setCirnoIntroStep] = useState(0); // Paso de intro de Cirno
+  const [gameAppearing, setGameAppearing] = useState(false); // Animación de aparición
   const [message, _setMessage] = useState("Observa el vaso con el pan...");
   const [chatHistory, setChatHistory] = useState([]); // Historial de mensajes
   const [currentTypingId, setCurrentTypingId] = useState(0); // Para forzar re-render del typewriter
@@ -129,6 +157,9 @@ export default function Level2() {
       // Reordenar el array de vasos aleatoriamente
       setCups((prev) => [...prev].sort(() => Math.random() - 0.5));
 
+      // Reproducir sonido whoosh 
+      playSfx("whosh", 0.6, 1.5);
+
       // Hacer que un vaso aleatorio "salte" para efecto dinámico
       setBouncingCup(Math.floor(Math.random() * currentNumCups));
       setTimeout(() => setBouncingCup(null), Math.min(200, speed / 2));
@@ -159,10 +190,12 @@ export default function Level2() {
   const handleCupClick = (cupId) => {
     if (gameState !== "picking") return;
 
+    playSfx("sqek");
     setSelectedCup(cupId);
     setGameState("revealed");
 
     if (cupId === winningCup) {
+      playSfx("ding");
       const newWins = wins + 1;
       setWins(newWins);
 
@@ -174,6 +207,7 @@ export default function Level2() {
       if (newWins >= WINS_REQUIRED) {
         // ¡Ganó el nivel! Esperar y pasar
         updateMessage("¡¡¡NIVEL COMPLETADO!!! ¡INCREÍBLE!");
+        if (bgmRef.current) bgmRef.current.pause();
         setShowWinModal(true);
       } else {
         // Acierto pero necesita más. Nueva ronda con más vasos
@@ -201,6 +235,7 @@ export default function Level2() {
       }
     } else {
       // Perdió. Restar vida y reiniciar ESTA ronda (no resetear vasos)
+      playSfx("baka");
       updateMessage(
         isFinalRound
           ? "¡¡NOOOO!! ¡Tan cerca! -1 vida"
@@ -224,16 +259,37 @@ export default function Level2() {
     }
   };
 
-  // 3. Manejar diálogo de intro
+  // 3. Manejar diálogo de intro (Miku)
   const handleNextDialogue = () => {
+    playSfx("select");
     if (introStep < MIKU_INTRO.length - 1) {
       setIntroStep((prev) => prev + 1);
     } else {
-      setGameState("intro");
+      playSfx("weaponPull");
+      setGameState("cirnoIntro"); // Ir a intro de Cirno
+    }
+  };
+
+  // 4. Manejar diálogo de Cirno
+  const handleCirnoDialogue = () => {
+    playSfx("select");
+    if (cirnoIntroStep < CIRNO_INTRO.length - 1) {
+      setCirnoIntroStep((prev) => prev + 1);
+    } else {
+      playSfx("weaponPull");
+      setGameAppearing(true); // Activar animación
+      // Iniciar música de fondo
+      if (bgmRef.current) {
+        bgmRef.current.play().catch(() => {});
+      }
+      setTimeout(() => {
+        setGameState("intro"); // Ir al juego
+      }, 100); // Pequeño delay para que la animación inicie
     }
   };
 
   const showRules = gameState === "rules";
+  const showCirnoIntro = gameState === "cirnoIntro";
 
   return (
     <div className="flex flex-row items-start justify-center w-full gap-4 px-4">
@@ -315,10 +371,64 @@ export default function Level2() {
             </button>
           </div>
         </div>
+      ) : showCirnoIntro ? (
+        /* --- PANTALLA DE INTRO DE CIRNO --- */
+        <div className="flex flex-col items-center justify-center w-full max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold font-mono text-cyan-400 mb-8 animate-pulse">
+            ⑨ CIRNO ⑨
+          </h1>
+          
+          <div className="w-full border-4 border-cyan-400 bg-black p-6">
+            {/* Cirno grande con animación de vuelo */}
+            <div className="flex justify-center mb-6">
+              <img
+                src={cirnoFumo}
+                alt="Cirno"
+                className="w-40 h-40 object-contain animate-float drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]"
+                draggable={false}
+              />
+            </div>
+
+            {/* Header con Cirno */}
+            <div className="flex items-center gap-4 mb-6 pb-4 border-b-2 border-cyan-400">
+              <div className="w-16 h-16 border-2 border-cyan-400 overflow-hidden rounded-full bg-cyan-900/50">
+                <img
+                  src={cirnoFumo}
+                  alt="Cirno"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <span className="text-cyan-400 font-mono text-xl font-bold">CIRNO</span>
+                <div className="text-cyan-300 font-mono text-sm">⑨ LA MÁS FUERTE</div>
+              </div>
+            </div>
+
+            {/* Mensaje */}
+            <div className="bg-cyan-900/30 border border-cyan-400 rounded-lg p-4 mb-6 min-h-25">
+              <p className="font-mono text-cyan-100 text-lg leading-relaxed">
+                <TypewriterText 
+                  key={`cirno-intro-${cirnoIntroStep}`}
+                  text={CIRNO_INTRO[cirnoIntroStep]} 
+                  voice="cirno" 
+                  speed={30}
+                />
+              </p>
+            </div>
+
+            {/* Botón */}
+            <button
+              onClick={handleCirnoDialogue}
+              className="w-full py-3 text-cyan-400 font-mono text-lg hover:bg-cyan-400 hover:text-black transition-colors border-2 border-cyan-400"
+            >
+              {cirnoIntroStep < CIRNO_INTRO.length - 1 ? "SIGUIENTE →" : "¡EMPEZAR!"}
+            </button>
+          </div>
+        </div>
       ) : (
         <>
           {/* --- ÁREA DE JUEGO (IZQUIERDA) --- */}
-          <div className="flex flex-col items-center flex-1 max-w-[600px]">
+          <div className={`flex flex-col items-center flex-1 max-w-[600px] ${gameAppearing ? "animate-magnet-left" : ""}`}>
         {/* Indicador de progreso */}
         <div
           className={`mb-2 text-lg font-mono ${isFinalRound ? "text-yellow-400 animate-pulse text-xl" : "text-gray-300"}`}
@@ -363,6 +473,7 @@ export default function Level2() {
           <div
             className={`
               relative mb-4 transition-transform duration-100 ease-out
+              ${gameState === "picking" ? "animate-float" : ""}
             `}
             style={{
               transform:
@@ -375,7 +486,7 @@ export default function Level2() {
             <img
               src={cirnoFumo}
               alt="Cirno Fumo"
-              className="w-50 h-50 object-contain drop-shadow-lg"
+              className={`w-50 h-50 object-contain drop-shadow-lg ${gameState === "picking" ? "drop-shadow-[0_0_15px_rgba(34,211,238,0.6)]" : ""}`}
               draggable={false}
             />
           </div>
@@ -469,7 +580,7 @@ export default function Level2() {
       </div>
 
       {/* --- LIVE CHAT MIKU (DERECHA) --- */}
-      <div className="w-64 flex flex-col border-4 border-white bg-black h-[500px]">
+      <div className={`w-64 flex flex-col border-4 border-white bg-black h-[500px] ${gameAppearing ? "animate-magnet-right" : ""}`}>
         {/* Header del chat */}
         <div className="border-b-2 border-white p-2 flex items-center gap-2 bg-gray-900">
           <div className="w-10 h-10 border-2 border-teto-red overflow-hidden shrink-0">

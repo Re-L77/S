@@ -5,7 +5,7 @@ export default function LevelLoader({ levelNumber, onComplete }) {
   const [progress, setProgress] = useState(0);
   const [phase, setPhase] = useState("loading"); // loading, ready, fadeout
   const [opacity, setOpacity] = useState(1);
-  const { initAudio } = useAudio();
+  const { initAudio, playSfx } = useAudio();
 
   useEffect(() => {
     // Simular carga progresiva
@@ -28,6 +28,7 @@ export default function LevelLoader({ levelNumber, onComplete }) {
   // Manejar click para iniciar (habilita audio en navegadores)
   const handleStart = () => {
     initAudio(); // Inicializar audio con interacción del usuario
+    playSfx("select");
     setPhase("fadeout");
   };
 

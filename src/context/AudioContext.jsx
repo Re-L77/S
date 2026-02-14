@@ -1,5 +1,13 @@
 import { createContext, useContext, useRef, useCallback } from "react";
 
+// Importar archivos de audio
+import bakaSfx from "../assets/sound/ui/baka.mp3";
+import selectSfx from "../assets/sound/ui/undertale-select-sound.mp3";
+import dingSfx from "../assets/sound/ui/undertale-ding.mp3";
+import weaponPullSfx from "../assets/sound/ui/deltarune-weapons-pull.mp3";
+import sqekSfx from "../assets/sound/ui/sqek.mp3";
+import whoshSfx from "../assets/sound/ui/whosh.wav";
+
 const AudioContext = createContext(null);
 
 // Frecuencias para simular voces de personajes (como Undertale)
@@ -9,9 +17,20 @@ const VOICE_CONFIGS = {
   system: { baseFreq: 300, variation: 2, duration: 0.03 },
 };
 
+// Mapeo de efectos de sonido
+const SFX_FILES = {
+  baka: bakaSfx,
+  select: selectSfx,
+  ding: dingSfx,
+  weaponPull: weaponPullSfx,
+  sqek: sqekSfx,
+  whosh: whoshSfx,
+};
+
 export function AudioProvider({ children }) {
   const audioContextRef = useRef(null);
   const initializedRef = useRef(false);
+  const audioElementsRef = useRef({});
 
   // Inicializar el AudioContext (debe llamarse desde un evento de usuario)
   const initAudio = useCallback(() => {
@@ -57,8 +76,39 @@ export function AudioProvider({ children }) {
     }
   }, []);
 
+  // Reproducir efecto de sonido (archivo de audio)
+  // allowOverlap: si true, crea nueva instancia para permitir múltiples sonidos simultáneos
+  const playSfx = useCallback((sfxName, volume = 0.5, playbackRate = 1, allowOverlap = false) => {
+    const sfxFile = SFX_FILES[sfxName];
+    if (!sfxFile) return;
+
+    try {
+      let audio;
+      
+      if (allowOverlap) {
+        // Crear nueva instancia para permitir overlap
+        audio = new Audio(sfxFile);
+      } else {
+        // Reutilizar o crear elemento de audio
+        if (!audioElementsRef.current[sfxName]) {
+          audioElementsRef.current[sfxName] = new Audio(sfxFile);
+        }
+        audio = audioElementsRef.current[sfxName];
+        audio.currentTime = 0; // Reiniciar para permitir reproducción rápida
+      }
+      
+      audio.volume = volume;
+      audio.playbackRate = playbackRate; // Velocidad de reproducción
+      audio.play().catch(() => {
+        // Silenciar errores de autoplay
+      });
+    } catch {
+      // Silenciar errores
+    }
+  }, []);
+
   return (
-    <AudioContext.Provider value={{ initAudio, playSound }}>
+    <AudioContext.Provider value={{ initAudio, playSound, playSfx }}>
       {children}
     </AudioContext.Provider>
   );
@@ -70,7 +120,8 @@ export function useAudio() {
     // Fallback si no hay provider
     return { 
       initAudio: () => {}, 
-      playSound: () => {} 
+      playSound: () => {},
+      playSfx: () => {}
     };
   }
   return context;

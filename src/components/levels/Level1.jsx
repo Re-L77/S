@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useGame } from "../../context/GameContext";
+import { useAudio } from "../../context/AudioContext";
 import GameModal from "../ui/GameModal";
 import LevelLoader from "../ui/LevelLoader";
 import TypewriterText from "../ui/TypewriterText";
@@ -65,6 +66,7 @@ const MIKU_RULES = [
 
 export default function Level1() {
   const { nextLevel, takeDamage } = useGame();
+  const { playSfx } = useAudio();
 
   // --- ESTADOS ---
   const [cards, setCards] = useState([]);
@@ -101,6 +103,7 @@ export default function Level1() {
     if (solved.length === FUMO_DATA.length) return;
 
     if (timeLeft <= 0) {
+      playSfx("baka");
       takeDamage();
       setMessage("¡TIEMPO FUERA! -1 VIDA");
       setShowDamageModal(true);
@@ -109,7 +112,7 @@ export default function Level1() {
     }
     const timer = setInterval(() => setTimeLeft((p) => p - 1), 1000);
     return () => clearInterval(timer);
-  }, [timeLeft, solved, takeDamage, showIntro]);
+  }, [timeLeft, solved, takeDamage, showIntro, playSfx]);
 
   // 3. Lógica
   useEffect(() => {
@@ -118,6 +121,7 @@ export default function Level1() {
       const [first, second] = flipped;
 
       if (cards[first].id === cards[second].id) {
+        playSfx("ding");
         setMessage(`¡Correcto! ${cards[first].name} asegurado.`);
         setPopping([first, second]);
         setTimeout(() => {
@@ -155,10 +159,12 @@ export default function Level1() {
       flipped.includes(index)
     )
       return;
+    playSfx("sqek");
     setFlipped((prev) => [...prev, index]);
   };
 
   const handleNextDialogue = () => {
+    playSfx("select");
     if (introStep < MIKU_RULES.length - 1) {
       setIntroStep((prev) => prev + 1);
     } else {
@@ -167,6 +173,7 @@ export default function Level1() {
   };
 
   const startGame = () => {
+    playSfx("weaponPull");
     setShowIntro(false);
     setMessage("¡Comienza!");
   };
