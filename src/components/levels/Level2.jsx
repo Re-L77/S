@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useGame } from "../../context/GameContext";
 import GameModal from "../ui/GameModal";
 import TypewriterText from "../ui/TypewriterText";
+import LevelLoader from "../ui/LevelLoader";
 import cirnoFumo from "../../assets/level2/cirno.png";
 import glassImg from "../../assets/level2/glass.png";
 import mikuImg from "../../assets/Miku.png";
@@ -77,7 +78,7 @@ export default function Level2() {
   };
 
   // Estados de modales
-  const [showStartModal, setShowStartModal] = useState(true);
+  const [showLoading, setShowLoading] = useState(true);
   const [showWinModal, setShowWinModal] = useState(false);
   const [showDamageModal, setShowDamageModal] = useState(false);
 
@@ -236,15 +237,15 @@ export default function Level2() {
 
   return (
     <div className="flex flex-row items-start justify-center w-full gap-4 px-4">
+      {/* PANTALLA DE CARGA */}
+      {showLoading && (
+        <LevelLoader 
+          levelNumber={2} 
+          onComplete={() => setShowLoading(false)} 
+        />
+      )}
+
       {/* MODALES */}
-      <GameModal
-        isOpen={showStartModal}
-        onClose={() => setShowStartModal(false)}
-        type="start"
-        title="NIVEL 2"
-        subtitle="El Juego del Vaso - ¡5 rondas! Cada vez más vasos y más rápido..."
-        buttonText="¡EMPEZAR!"
-      />
       <GameModal
         isOpen={showWinModal}
         onClose={() => {
@@ -270,8 +271,54 @@ export default function Level2() {
         autoClose={2000}
       />
 
-      {/* --- ÁREA DE JUEGO (IZQUIERDA) --- */}
-      <div className="flex flex-col items-center flex-1 max-w-[600px]">
+      {/* --- PANTALLA DE INTRO (MIKU OCUPA TODO) --- */}
+      {showRules ? (
+        <div className="flex flex-col items-center justify-center w-full max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold font-mono text-teto-red mb-8 animate-pulse">
+            NIVEL 2
+          </h1>
+          
+          <div className="w-full border-4 border-white bg-black p-6">
+            {/* Header con Miku */}
+            <div className="flex items-center gap-4 mb-6 pb-4 border-b-2 border-white">
+              <div className="w-16 h-16 border-2 border-teto-red overflow-hidden">
+                <img
+                  src={mikuImg}
+                  alt="Miku"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <span className="text-teto-red font-mono text-xl font-bold">MIKU</span>
+                <div className="text-green-400 font-mono text-sm">● EN LÍNEA</div>
+              </div>
+            </div>
+
+            {/* Mensaje */}
+            <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 mb-6 min-h-[100px]">
+              <p className="font-mono text-white text-lg leading-relaxed">
+                <TypewriterText 
+                  key={`intro-${introStep}`}
+                  text={MIKU_INTRO[introStep]} 
+                  voice="miku" 
+                  speed={25}
+                />
+              </p>
+            </div>
+
+            {/* Botón */}
+            <button
+              onClick={handleNextDialogue}
+              className="w-full py-3 text-teto-red font-mono text-lg hover:bg-teto-red hover:text-black transition-colors border-2 border-teto-red"
+            >
+              {introStep < MIKU_INTRO.length - 1 ? "SIGUIENTE →" : "¡JUGAR!"}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* --- ÁREA DE JUEGO (IZQUIERDA) --- */}
+          <div className="flex flex-col items-center flex-1 max-w-[600px]">
         {/* Indicador de progreso */}
         <div
           className={`mb-2 text-lg font-mono ${isFinalRound ? "text-yellow-400 animate-pulse text-xl" : "text-gray-300"}`}
@@ -310,17 +357,8 @@ export default function Level2() {
 
         {/* Contenedor principal del juego */}
         <div
-          className={`relative flex flex-col items-center border-4 ${isFinalRound ? "border-yellow-400 shadow-[0_0_30px_rgba(234,179,8,0.5)]" : "border-white"} bg-black p-6 min-h-[400px] w-full`}
+          className={`relative flex flex-col items-center border-4 ${isFinalRound ? "border-yellow-400 shadow-[0_0_30px_rgba(234,179,8,0.5)]" : "border-white"} bg-black p-6 min-h-100 w-full`}
         >
-          {/* Cubierta de reglas */}
-          {showRules && (
-            <div className="absolute inset-0 bg-black/90 z-10 flex flex-col items-center justify-center gap-4">
-              <div className="text-teto-red font-mono text-xl animate-pulse">
-                PAUSA - LEYENDO REGLAS
-              </div>
-            </div>
-          )}
-
           {/* PERSONAJE - Coloca tu asset de fumo aquí */}
           <div
             className={`
@@ -434,7 +472,7 @@ export default function Level2() {
       <div className="w-64 flex flex-col border-4 border-white bg-black h-[500px]">
         {/* Header del chat */}
         <div className="border-b-2 border-white p-2 flex items-center gap-2 bg-gray-900">
-          <div className="w-10 h-10 border-2 border-teto-red overflow-hidden flex-shrink-0">
+          <div className="w-10 h-10 border-2 border-teto-red overflow-hidden shrink-0">
             <img
               src={mikuImg}
               alt="Miku"
@@ -451,69 +489,47 @@ export default function Level2() {
 
         {/* Área de mensajes */}
         <div className="flex-1 p-3 overflow-y-auto flex flex-col gap-2">
-          {showRules ? (
-            <div className="bg-gray-800 border border-gray-600 rounded-lg p-2">
-              <p className="font-mono text-white text-xs leading-relaxed">
+          {/* Mensaje actual del sistema */}
+          <div className="bg-gray-800 border border-gray-600 rounded-lg p-2">
+            <p className="font-mono text-white text-xs leading-relaxed">
+              <TypewriterText 
+                key={`msg-${currentTypingId}`}
+                text={`* ${message}`} 
+                voice="system" 
+                speed={20}
+              />
+            </p>
+          </div>
+
+          {/* Historial de mensajes de Cirno (como si hackeara el chat) */}
+          {chatHistory.map((msg, index) => (
+            <div
+              key={index}
+              className="bg-cyan-900/50 border border-cyan-400 rounded-lg p-2"
+            >
+              <p className="font-mono text-cyan-300 text-xs leading-relaxed">
                 <TypewriterText 
-                  key={`intro-${introStep}`}
-                  text={MIKU_INTRO[introStep]} 
-                  voice="miku" 
-                  speed={25}
+                  key={`cirno-${index}`}
+                  text={msg} 
+                  voice="cirno" 
+                  speed={35}
                 />
               </p>
             </div>
-          ) : (
-            <>
-              {/* Mensaje actual del sistema */}
-              <div className="bg-gray-800 border border-gray-600 rounded-lg p-2">
-                <p className="font-mono text-white text-xs leading-relaxed">
-                  <TypewriterText 
-                    key={`msg-${currentTypingId}`}
-                    text={`* ${message}`} 
-                    voice="system" 
-                    speed={20}
-                  />
-                </p>
-              </div>
-
-              {/* Historial de mensajes de Cirno (como si hackeara el chat) */}
-              {chatHistory.map((msg, index) => (
-                <div
-                  key={index}
-                  className="bg-cyan-900/50 border border-cyan-400 rounded-lg p-2"
-                >
-                  <p className="font-mono text-cyan-300 text-xs leading-relaxed">
-                    <TypewriterText 
-                      key={`cirno-${index}`}
-                      text={msg} 
-                      voice="cirno" 
-                      speed={35}
-                    />
-                  </p>
-                </div>
-              ))}
-            </>
-          )}
+          ))}
         </div>
 
         {/* Input/Botón área */}
         <div className="border-t-2 border-white p-2 bg-gray-900">
-          {showRules ? (
-            <button
-              onClick={handleNextDialogue}
-              className="w-full py-2 text-teto-red font-mono text-sm hover:bg-teto-red hover:text-black transition-colors border-2 border-teto-red"
-            >
-              {introStep < MIKU_INTRO.length - 1 ? "SIGUIENTE →" : "¡JUGAR!"}
-            </button>
-          ) : (
-            <div className="text-gray-500 font-mono text-xs text-center py-2">
-              {gameState === "shuffling"
-                ? "⚡ Barajando..."
-                : "Sistema activo..."}
-            </div>
-          )}
+          <div className="text-gray-500 font-mono text-xs text-center py-2">
+            {gameState === "shuffling"
+              ? "⚡ Barajando..."
+              : "Sistema activo..."}
+          </div>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }

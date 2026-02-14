@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useGame } from "../../context/GameContext";
 import GameModal from "../ui/GameModal";
+import LevelLoader from "../ui/LevelLoader";
+import TypewriterText from "../ui/TypewriterText";
 // IMPORTANTE: Importamos la imagen desde tu carpeta assets para que Vite la encuentre
 import mikuImg from "../../assets/Miku.png";
 // TUS IMÁGENES REALES (Según tu captura)
@@ -81,7 +83,7 @@ export default function Level1() {
   const [message, setMessage] = useState("Esperando inicio...");
 
   // Estados de modales
-  const [showStartModal, setShowStartModal] = useState(true);
+  const [showLoading, setShowLoading] = useState(true);
   const [showWinModal, setShowWinModal] = useState(false);
   const [showDamageModal, setShowDamageModal] = useState(false);
 
@@ -181,15 +183,15 @@ export default function Level1() {
 
   return (
     <div className="flex flex-row items-start justify-center w-full gap-4 px-4">
+      {/* PANTALLA DE CARGA */}
+      {showLoading && (
+        <LevelLoader 
+          levelNumber={1} 
+          onComplete={() => setShowLoading(false)} 
+        />
+      )}
+
       {/* MODALES */}
-      <GameModal
-        isOpen={showStartModal}
-        onClose={() => setShowStartModal(false)}
-        type="start"
-        title="NIVEL 1"
-        subtitle="Memorama de Fumos - Encuentra todos los pares antes de que el tiempo se agote"
-        buttonText="¡EMPEZAR!"
-      />
       <GameModal
         isOpen={showWinModal}
         onClose={() => {
@@ -270,8 +272,54 @@ export default function Level1() {
         .card-pop { transform: scale(1.3); border-color: #00ff00 !important; box-shadow: 0 0 15px #00ff00; z-index: 100; }
       `}</style>
 
-      {/* --- ÁREA DE JUEGO (IZQUIERDA) --- */}
-      <div className="flex flex-col items-center flex-1 max-w-[500px]">
+      {/* --- PANTALLA DE INTRO (MIKU OCUPA TODO) --- */}
+      {showIntro ? (
+        <div className="flex flex-col items-center justify-center w-full max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold font-mono text-teto-red mb-8 animate-pulse">
+            NIVEL 1
+          </h1>
+          
+          <div className="w-full border-4 border-white bg-black p-6">
+            {/* Header con Miku */}
+            <div className="flex items-center gap-4 mb-6 pb-4 border-b-2 border-white">
+              <div className="w-16 h-16 border-2 border-teto-red overflow-hidden">
+                <img
+                  src={mikuImg}
+                  alt="Miku"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <span className="text-teto-red font-mono text-xl font-bold">MIKU</span>
+                <div className="text-green-400 font-mono text-sm">● EN LÍNEA</div>
+              </div>
+            </div>
+
+            {/* Mensaje */}
+            <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 mb-6 min-h-[100px]">
+              <p className="font-mono text-white text-lg leading-relaxed">
+                <TypewriterText 
+                  key={`intro-${introStep}`}
+                  text={MIKU_RULES[introStep]} 
+                  voice="miku" 
+                  speed={25}
+                />
+              </p>
+            </div>
+
+            {/* Botón */}
+            <button
+              onClick={handleNextDialogue}
+              className="w-full py-3 text-teto-red font-mono text-lg hover:bg-teto-red hover:text-black transition-colors border-2 border-teto-red"
+            >
+              {introStep < MIKU_RULES.length - 1 ? "SIGUIENTE →" : "¡JUGAR!"}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* --- ÁREA DE JUEGO (IZQUIERDA) --- */}
+          <div className="flex flex-col items-center flex-1 max-w-125">
         {/* HEADER */}
         <div className="flex justify-between w-full font-mono mb-2 px-2 text-sm sm:text-base">
           <span
@@ -293,16 +341,7 @@ export default function Level1() {
         </div>
 
         {/* --- TABLERO --- */}
-        <div className="relative w-full aspect-square max-w-[550px] border-4 border-white bg-black overflow-hidden flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-          {/* Cubierta de Intro */}
-          {showIntro && (
-            <div className="absolute inset-0 bg-black/90 z-10 flex flex-col items-center justify-center gap-4">
-              <div className="text-teto-red font-mono text-xl animate-pulse">
-                PAUSA - LEYENDO REGLAS
-              </div>
-            </div>
-          )}
-
+        <div className="relative w-full aspect-square max-w-137.5 border-4 border-white bg-black overflow-hidden flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)]">
           {/* JUEGO */}
           <div
             className={`${boardClass} p-4 bg-gray-800 border-2 border-white rounded-lg transition-all duration-300`}
@@ -353,10 +392,10 @@ export default function Level1() {
       </div>
 
       {/* --- LIVE CHAT MIKU (DERECHA) --- */}
-      <div className="w-64 flex flex-col border-4 border-white bg-black h-[500px]">
+      <div className="w-64 flex flex-col border-4 border-white bg-black h-125">
         {/* Header del chat */}
         <div className="border-b-2 border-white p-2 flex items-center gap-2 bg-gray-900">
-          <div className="w-10 h-10 border-2 border-teto-red overflow-hidden flex-shrink-0">
+          <div className="w-10 h-10 border-2 border-teto-red overflow-hidden shrink-0">
             <img
               src={mikuImg}
               alt="Miku"
@@ -373,41 +412,26 @@ export default function Level1() {
 
         {/* Área de mensajes */}
         <div className="flex-1 p-3 overflow-y-auto flex flex-col gap-2">
-          {showIntro ? (
-            <div className="bg-gray-800 border border-gray-600 rounded-lg p-2">
-              <p className="font-mono text-white text-xs leading-relaxed">
-                {MIKU_RULES[introStep]}
-              </p>
-            </div>
-          ) : (
-            <div
-              className={`bg-gray-800 border rounded-lg p-2 ${isCritical ? "border-red-500" : "border-gray-600"}`}
+          <div
+            className={`bg-gray-800 border rounded-lg p-2 ${isCritical ? "border-red-500" : "border-gray-600"}`}
+          >
+            <p
+              className={`font-mono text-xs leading-relaxed ${isCritical ? "text-red-400" : "text-white"}`}
             >
-              <p
-                className={`font-mono text-xs leading-relaxed ${isCritical ? "text-red-400" : "text-white"}`}
-              >
-                * {message}
-              </p>
-            </div>
-          )}
+              * {message}
+            </p>
+          </div>
         </div>
 
         {/* Input/Botón área */}
         <div className="border-t-2 border-white p-2 bg-gray-900">
-          {showIntro ? (
-            <button
-              onClick={handleNextDialogue}
-              className="w-full py-2 text-teto-red font-mono text-sm hover:bg-teto-red hover:text-black transition-colors border-2 border-teto-red"
-            >
-              {introStep < MIKU_RULES.length - 1 ? "SIGUIENTE →" : "¡JUGAR!"}
-            </button>
-          ) : (
-            <div className="text-gray-500 font-mono text-xs text-center py-2">
-              {isCritical ? "⚠ SISTEMA INESTABLE" : "Sistema activo..."}
-            </div>
-          )}
+          <div className="text-gray-500 font-mono text-xs text-center py-2">
+            {isCritical ? "⚠ SISTEMA INESTABLE" : "Sistema activo..."}
+          </div>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }
