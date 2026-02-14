@@ -1,6 +1,16 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useGame } from "../../context/GameContext";
 import { useAudio } from "../../context/AudioContext";
+
+// Caracteres de "corrupción" para los bugs
+const BUG_CHARS = "!@#$%^&*()_+-=[]{}|;':\",./<>?`~▓▒░█▀▄▌▐■□▪▫●○◘◙◄►▲▼←↑→↓↔↕";
+const generateBugText = () => {
+  const length = Math.floor(Math.random() * 20) + 5;
+  return Array.from(
+    { length },
+    () => BUG_CHARS[Math.floor(Math.random() * BUG_CHARS.length)],
+  ).join("");
+};
 
 // Líneas del "Kernel Panic" emocional
 const CRASH_LINES = [
@@ -37,6 +47,11 @@ export default function GameOverScreen() {
   const [mikuIndex, setMikuIndex] = useState(0);
   const [showButton, setShowButton] = useState(false);
   const [glitchEffect, setGlitchEffect] = useState(true);
+
+  // Estado para bugs progresivos
+  const [bugs, setBugs] = useState([]);
+  const bugIntervalRef = useRef(null);
+  const bugStartedRef = useRef(false);
 
   const handleReconnect = useCallback(() => {
     playSfx("select");
@@ -109,6 +124,53 @@ export default function GameOverScreen() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showButton, handleReconnect]);
 
+  // Bugs progresivos - si el usuario tarda mucho, la pantalla se llena de bugs
+  useEffect(() => {
+    if (!showButton || bugStartedRef.current) return;
+    bugStartedRef.current = true;
+
+    // Empezar a generar bugs después de 5 segundos
+    const startDelay = setTimeout(() => {
+      let bugCount = 0;
+      const maxBugs = 50;
+
+      bugIntervalRef.current = setInterval(() => {
+        if (bugCount >= maxBugs) {
+          clearInterval(bugIntervalRef.current);
+          return;
+        }
+
+        // Cada bug tiene posición aleatoria y texto corrupto
+        const newBug = {
+          id: Date.now() + Math.random(),
+          text: generateBugText(),
+          x: Math.random() * 90, // % desde la izquierda
+          y: Math.random() * 90, // % desde arriba
+          rotation: Math.random() * 360,
+          scale: 0.5 + Math.random() * 1.5,
+          color: ["#ff0000", "#00ff00", "#ff00ff", "#ffff00", "#00ffff"][
+            Math.floor(Math.random() * 5)
+          ],
+        };
+
+        setBugs((prev) => [...prev, newBug]);
+        bugCount++;
+
+        // Sonido de glitch ocasional
+        if (bugCount % 5 === 0) {
+          playSfx("baka", 0.1);
+        }
+      }, 800); // Un bug cada 800ms
+    }, 5000); // Empezar después de 5 segundos
+
+    return () => {
+      clearTimeout(startDelay);
+      if (bugIntervalRef.current) {
+        clearInterval(bugIntervalRef.current);
+      }
+    };
+  }, [showButton, playSfx]);
+
   return (
     <div
       className={`fixed inset-0 bg-black z-50 flex flex-col items-center justify-center p-4 overflow-hidden
@@ -141,7 +203,40 @@ export default function GameOverScreen() {
           75% { transform: scale(1.05); }
           100% { transform: scale(1); }
         }
+        @keyframes bugFloat {
+          0% { transform: translate(0, 0) rotate(var(--rot)); opacity: 0; }
+          10% { opacity: 1; }
+          50% { transform: translate(10px, -15px) rotate(calc(var(--rot) + 15deg)); }
+          100% { transform: translate(-5px, 5px) rotate(calc(var(--rot) - 10deg)); opacity: 0.8; }
+        }
+        @keyframes bugGlitch {
+          0%, 100% { filter: none; }
+          25% { filter: hue-rotate(90deg) blur(1px); }
+          50% { filter: invert(0.3); }
+          75% { filter: hue-rotate(-90deg); }
+        }
       `}</style>
+
+      {/* BUGS PROGRESIVOS - aparecen si el usuario tarda */}
+      {bugs.map((bug) => (
+        <div
+          key={bug.id}
+          className="absolute pointer-events-none font-mono select-none z-40"
+          style={{
+            left: `${bug.x}%`,
+            top: `${bug.y}%`,
+            transform: `rotate(${bug.rotation}deg) scale(${bug.scale})`,
+            color: bug.color,
+            textShadow: `0 0 5px ${bug.color}`,
+            animation:
+              "bugFloat 3s ease-in-out infinite, bugGlitch 0.5s infinite",
+            "--rot": `${bug.rotation}deg`,
+            opacity: 0.7,
+          }}
+        >
+          {bug.text}
+        </div>
+      ))}
 
       {/* Scanlines effect */}
       <div

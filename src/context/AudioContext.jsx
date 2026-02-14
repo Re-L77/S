@@ -14,6 +14,7 @@ const AudioContext = createContext(null);
 const VOICE_CONFIGS = {
   miku: { baseFreq: 900, variation: 2, duration: 0.03 },
   cirno: { baseFreq: 960, variation: 10, duration: 0.06 },
+  mizuki: { baseFreq: 520, variation: 8, duration: 0.045 },
   system: { baseFreq: 300, variation: 2, duration: 0.03 },
 };
 
@@ -35,18 +36,24 @@ export function AudioProvider({ children }) {
   // Inicializar el AudioContext (debe llamarse desde un evento de usuario)
   const initAudio = useCallback(() => {
     if (!initializedRef.current) {
-      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      audioContextRef.current = new (
+        window.AudioContext || window.webkitAudioContext
+      )();
       initializedRef.current = true;
     }
     // Resumir si está suspendido
-    if (audioContextRef.current && audioContextRef.current.state === "suspended") {
+    if (
+      audioContextRef.current &&
+      audioContextRef.current.state === "suspended"
+    ) {
       audioContextRef.current.resume();
     }
   }, []);
 
   // Reproducir sonido de letra
   const playSound = useCallback((voice = "system") => {
-    if (!audioContextRef.current || audioContextRef.current.state === "closed") return;
+    if (!audioContextRef.current || audioContextRef.current.state === "closed")
+      return;
 
     // Resumir si está suspendido
     if (audioContextRef.current.state === "suspended") {
@@ -65,7 +72,10 @@ export function AudioProvider({ children }) {
       oscillator.type = "square";
 
       gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + config.duration);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        ctx.currentTime + config.duration,
+      );
 
       oscillator.connect(gainNode);
       gainNode.connect(ctx.destination);
@@ -78,34 +88,37 @@ export function AudioProvider({ children }) {
 
   // Reproducir efecto de sonido (archivo de audio)
   // allowOverlap: si true, crea nueva instancia para permitir múltiples sonidos simultáneos
-  const playSfx = useCallback((sfxName, volume = 0.5, playbackRate = 1, allowOverlap = false) => {
-    const sfxFile = SFX_FILES[sfxName];
-    if (!sfxFile) return;
+  const playSfx = useCallback(
+    (sfxName, volume = 0.5, playbackRate = 1, allowOverlap = false) => {
+      const sfxFile = SFX_FILES[sfxName];
+      if (!sfxFile) return;
 
-    try {
-      let audio;
-      
-      if (allowOverlap) {
-        // Crear nueva instancia para permitir overlap
-        audio = new Audio(sfxFile);
-      } else {
-        // Reutilizar o crear elemento de audio
-        if (!audioElementsRef.current[sfxName]) {
-          audioElementsRef.current[sfxName] = new Audio(sfxFile);
+      try {
+        let audio;
+
+        if (allowOverlap) {
+          // Crear nueva instancia para permitir overlap
+          audio = new Audio(sfxFile);
+        } else {
+          // Reutilizar o crear elemento de audio
+          if (!audioElementsRef.current[sfxName]) {
+            audioElementsRef.current[sfxName] = new Audio(sfxFile);
+          }
+          audio = audioElementsRef.current[sfxName];
+          audio.currentTime = 0; // Reiniciar para permitir reproducción rápida
         }
-        audio = audioElementsRef.current[sfxName];
-        audio.currentTime = 0; // Reiniciar para permitir reproducción rápida
+
+        audio.volume = volume;
+        audio.playbackRate = playbackRate; // Velocidad de reproducción
+        audio.play().catch(() => {
+          // Silenciar errores de autoplay
+        });
+      } catch {
+        // Silenciar errores
       }
-      
-      audio.volume = volume;
-      audio.playbackRate = playbackRate; // Velocidad de reproducción
-      audio.play().catch(() => {
-        // Silenciar errores de autoplay
-      });
-    } catch {
-      // Silenciar errores
-    }
-  }, []);
+    },
+    [],
+  );
 
   return (
     <AudioContext.Provider value={{ initAudio, playSound, playSfx }}>
@@ -118,10 +131,10 @@ export function useAudio() {
   const context = useContext(AudioContext);
   if (!context) {
     // Fallback si no hay provider
-    return { 
-      initAudio: () => {}, 
+    return {
+      initAudio: () => {},
       playSound: () => {},
-      playSfx: () => {}
+      playSfx: () => {},
     };
   }
   return context;

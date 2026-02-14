@@ -48,7 +48,8 @@ const MIKU_INTRO = [
 
 // Diálogos de presentación de Cirno
 const CIRNO_INTRO = [
-  "Cirno: ¡¡ATENCIÓN!! ¡La hada más fuerte de Gensokyo ha llegado! ⑨",
+  "Cirno: ¡¡ATENCIÓN!! ¡Soy Cirno, la GUARDIANA de este sector! ⑨",
+  "Cirno: ¡El hada más fuerte de Gensokyo protege los datos de Teto!",
   "Cirno: ¿Crees que puedes encontrar MI baguette? ¡JA! ¡Ingenuo!",
   "Cirno: Soy tan inteligente que escondí el pan donde NADIE lo encontrará~",
   "Cirno: ¡Prepárate para perder, BAKA! ¡Aquí vamos!",
@@ -392,23 +393,26 @@ export default function Level2() {
           </div>
         </div>
       ) : showCirnoIntro ? (
-        /* --- PANTALLA DE INTRO DE CIRNO --- */
+        /* --- PANTALLA DE INTRO DE CIRNO (BOSS) --- */
         <div className="flex flex-col items-center justify-center w-full max-w-2xl mx-auto">
-          <h1 className="text-4xl font-bold font-mono text-cyan-400 mb-8 animate-pulse">
-            ⑨ CIRNO ⑨
-          </h1>
-
-          <div className="w-full border-4 border-cyan-400 bg-black p-6">
-            {/* Cirno grande con animación de vuelo */}
-            <div className="flex justify-center mb-6">
+          {/* Imagen de Cirno grande con efecto dramático */}
+          <div className="mb-6 animate-bounce">
+            <div className="relative">
+              <div className="absolute inset-0 bg-cyan-400/30 blur-xl rounded-full animate-pulse"></div>
               <img
                 src={cirnoFumo}
                 alt="Cirno"
-                className="w-40 h-40 object-contain animate-float drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]"
+                className="relative w-48 h-48 object-contain drop-shadow-[0_0_25px_rgba(34,211,238,0.7)]"
                 draggable={false}
               />
             </div>
+          </div>
 
+          <h1 className="text-4xl font-bold font-mono text-cyan-400 mb-4 animate-pulse">
+            ⑨ GUARDIANA DE DATOS ⑨
+          </h1>
+
+          <div className="w-full border-4 border-cyan-400 bg-black p-6">
             {/* Header con Cirno */}
             <div className="flex items-center gap-4 mb-6 pb-4 border-b-2 border-cyan-400">
               <div className="w-16 h-16 border-2 border-cyan-400 overflow-hidden rounded-full bg-cyan-900/50">
@@ -423,7 +427,7 @@ export default function Level2() {
                   CIRNO
                 </span>
                 <div className="text-cyan-300 font-mono text-sm">
-                  ⑨ LA MÁS FUERTE
+                  ⑨ GUARDIANA DEL NIVEL 2
                 </div>
               </div>
             </div>

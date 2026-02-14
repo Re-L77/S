@@ -6,6 +6,7 @@ import LevelLoader from "../ui/LevelLoader";
 import TypewriterText from "../ui/TypewriterText";
 // IMPORTANTE: Importamos la imagen desde tu carpeta assets para que Vite la encuentre
 import mikuImg from "../../assets/Miku.png";
+import mizukiImg from "../../assets/level1/mizuki.png";
 // TUS IMÁGENES REALES (Según tu captura)
 import reimuImg from "../../assets/level1/reimu.png";
 import marisaImg from "../../assets/level1/marisa.png";
@@ -66,6 +67,27 @@ const MIKU_RULES = [
   "Miku: Eso es todo. ¡Demuestra tu memoria y desbloquea el nivel!",
 ];
 
+// DIÁLOGO: INTRO DE MIZUKI (Boss del nivel 1)
+const MIZUKI_INTRO = [
+  "¿Hmm? ¿Otro intruso intentando hackear los archivos de Teto?",
+  "Soy Mizuki, la guardiana de este sector de memoria.",
+  "He ocultado los datos en pares de Fumos. Vamos a ver si puedes encontrarlos todos...",
+  "¡No te confíes! Los Fumos se mueven cuando el tiempo corre.",
+  "Adelante... si te atreves a desafiar mi memoria perfecta.",
+];
+
+// BURLAS DE MIZUKI (cuando el jugador falla)
+const MIZUKI_INSULTS = [
+  "Mizuki: ¿En serio? Esos no se parecen en nada~ ♪",
+  "Mizuki: Tu memoria es tan mala como tu gusto musical.",
+  "Mizuki: *suspira* Esperaba más de ti, hacker.",
+  "Mizuki: ¿Tus ojos funcionan? Porque esos Fumos son DIFERENTES.",
+  "Mizuki: Jajaja~ Teto estará a salvo si sigues así.",
+  "Mizuki: ¿Quieres que te dé una pista? ...No.",
+  "Mizuki: Esto es demasiado fácil para mí~",
+  "Mizuki: *bosteza* Me estás aburriendo.",
+];
+
 export default function Level1() {
   const { nextLevel, takeDamage, completeLevel } = useGame();
   const { playSfx } = useAudio();
@@ -96,10 +118,17 @@ export default function Level1() {
   const [shaking, setShaking] = useState([]);
   const [popping, setPopping] = useState([]);
 
-  // Intro
+  // Intro (Miku rules)
   const [showIntro, setShowIntro] = useState(true);
   const [introStep, setIntroStep] = useState(0);
   const [message, setMessage] = useState("Esperando inicio...");
+
+  // Intro de Mizuki (Boss)
+  const [showMizukiIntro, setShowMizukiIntro] = useState(false);
+  const [mizukiIntroStep, setMizukiIntroStep] = useState(0);
+
+  // Burlas de Mizuki
+  const [mizukiTaunt, setMizukiTaunt] = useState(null);
 
   // Estados de modales
   const [showLoading, setShowLoading] = useState(true);
@@ -116,7 +145,7 @@ export default function Level1() {
 
   // 2. Timer
   useEffect(() => {
-    if (showIntro) return;
+    if (showIntro || showMizukiIntro) return;
     if (solved.length === FUMO_DATA.length) return;
 
     if (timeLeft <= 0) {
@@ -129,7 +158,7 @@ export default function Level1() {
     }
     const timer = setInterval(() => setTimeLeft((p) => p - 1), 1000);
     return () => clearInterval(timer);
-  }, [timeLeft, solved, takeDamage, showIntro, playSfx]);
+  }, [timeLeft, solved, takeDamage, showIntro, showMizukiIntro, playSfx]);
 
   // 3. Lógica
   useEffect(() => {
@@ -148,12 +177,18 @@ export default function Level1() {
           setDisabled(false);
         }, 600);
       } else {
+        // Mizuki se burla del jugador
+        const randomInsult =
+          MIZUKI_INSULTS[Math.floor(Math.random() * MIZUKI_INSULTS.length)];
+        setMizukiTaunt(randomInsult);
         setMessage("¡Incorrecto!");
         setShaking([first, second]);
         setTimeout(() => {
           setFlipped([]);
           setShaking([]);
           setDisabled(false);
+          // Ocultar burla después de un rato
+          setTimeout(() => setMizukiTaunt(null), 2000);
         }, 800);
       }
     }
@@ -171,6 +206,7 @@ export default function Level1() {
   const handleClick = (index) => {
     if (
       showIntro ||
+      showMizukiIntro ||
       disabled ||
       solved.includes(cards[index].id) ||
       flipped.includes(index)
@@ -185,6 +221,17 @@ export default function Level1() {
     if (introStep < MIKU_RULES.length - 1) {
       setIntroStep((prev) => prev + 1);
     } else {
+      // Después de las reglas de Miku, mostrar intro de Mizuki
+      setShowIntro(false);
+      setShowMizukiIntro(true);
+    }
+  };
+
+  const handleNextMizukiDialogue = () => {
+    playSfx("select");
+    if (mizukiIntroStep < MIZUKI_INTRO.length - 1) {
+      setMizukiIntroStep((prev) => prev + 1);
+    } else {
       startGame();
     }
   };
@@ -192,6 +239,7 @@ export default function Level1() {
   const startGame = () => {
     playSfx("weaponPull");
     setShowIntro(false);
+    setShowMizukiIntro(false);
     setMessage("¡Comienza!");
     // Iniciar música de fondo
     if (bgmRef.current) {
@@ -217,11 +265,12 @@ export default function Level1() {
       !showDamageModal &&
       bgmRef.current &&
       !showIntro &&
+      !showMizukiIntro &&
       !showWinModal
     ) {
       bgmRef.current.volume = 0.3; // Restaurar volumen normal
     }
-  }, [showDamageModal, showIntro, showWinModal]);
+  }, [showDamageModal, showIntro, showMizukiIntro, showWinModal]);
 
   // --- GLITCH VISUALS ---
   const isWarning = timeLeft <= 25;
@@ -366,7 +415,72 @@ export default function Level1() {
               onClick={handleNextDialogue}
               className="w-full py-3 text-teto-red font-mono text-lg hover:bg-teto-red hover:text-black transition-colors border-2 border-teto-red"
             >
-              {introStep < MIKU_RULES.length - 1 ? "SIGUIENTE →" : "¡JUGAR!"}
+              {introStep < MIKU_RULES.length - 1
+                ? "SIGUIENTE →"
+                : "CONTINUAR →"}
+            </button>
+          </div>
+        </div>
+      ) : showMizukiIntro ? (
+        /* --- PANTALLA DE INTRO MIZUKI (BOSS) --- */
+        <div className="flex flex-col items-center justify-center w-full max-w-2xl mx-auto">
+          {/* Imagen de Mizuki grande con efecto dramático */}
+          <div className="mb-6 animate-bounce">
+            <div className="relative">
+              <div className="absolute inset-0 bg-pink-400/30 blur-xl rounded-full animate-pulse"></div>
+              <img
+                src={mizukiImg}
+                alt="Mizuki"
+                className="relative w-48 h-48 object-contain drop-shadow-[0_0_25px_rgba(236,72,153,0.7)]"
+                draggable={false}
+              />
+            </div>
+          </div>
+
+          <h1 className="text-4xl font-bold font-mono text-pink-400 mb-4 animate-pulse">
+            ♥ GUARDIANA DE MEMORIA ♥
+          </h1>
+
+          <div className="w-full border-4 border-pink-400 bg-black p-6">
+            {/* Header con Mizuki */}
+            <div className="flex items-center gap-4 mb-6 pb-4 border-b-2 border-pink-400">
+              <div className="w-16 h-16 border-2 border-pink-400 overflow-hidden rounded-full bg-pink-900/50">
+                <img
+                  src={mizukiImg}
+                  alt="Mizuki"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <span className="text-pink-400 font-mono text-xl font-bold">
+                  MIZUKI
+                </span>
+                <div className="text-pink-300 font-mono text-sm">
+                  ♥ BOSS DEL NIVEL 1
+                </div>
+              </div>
+            </div>
+
+            {/* Mensaje */}
+            <div className="bg-pink-900/30 border border-pink-400 rounded-lg p-4 mb-6 min-h-25">
+              <p className="font-mono text-pink-100 text-lg leading-relaxed">
+                <TypewriterText
+                  key={`mizuki-${mizukiIntroStep}`}
+                  text={MIZUKI_INTRO[mizukiIntroStep]}
+                  voice="mizuki"
+                  speed={30}
+                />
+              </p>
+            </div>
+
+            {/* Botón */}
+            <button
+              onClick={handleNextMizukiDialogue}
+              className="w-full py-3 text-pink-400 font-mono text-lg hover:bg-pink-400 hover:text-black transition-colors border-2 border-pink-400"
+            >
+              {mizukiIntroStep < MIZUKI_INTRO.length - 1
+                ? "SIGUIENTE →"
+                : "¡ACEPTO EL DESAFÍO!"}
             </button>
           </div>
         </div>
@@ -447,15 +561,40 @@ export default function Level1() {
             </div>
           </div>
 
-          {/* --- CAJA DE DIÁLOGO ESTILO UNDERTALE (ABAJO) --- */}
-          <div className="w-full border-4 border-white bg-black">
-            <div className="p-4">
-              <p
-                className={`font-mono text-lg leading-relaxed ${isCritical ? "text-red-400" : "text-white"}`}
-              >
-                * {message}
-              </p>
-            </div>
+
+          {/* --- CAJA DE DIÁLOGO ESTILO UNDERTALE (Mizuki o Sistema) --- */}
+          <div className={`w-full border-4 ${mizukiTaunt ? "border-pink-400" : "border-white"} bg-black transition-colors duration-300`}>
+            {mizukiTaunt ? (
+              <div className="p-4">
+                {/* Header Integrado de Mizuki */}
+                <div className="flex items-center gap-3 mb-2 pb-2 border-b border-pink-400/50">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 border-2 border-pink-400 overflow-hidden rounded-full bg-pink-900/50">
+                    <img
+                      src={mizukiImg}
+                      alt="Mizuki"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-pink-400 font-mono text-base sm:text-lg font-bold">
+                      MIZUKI
+                    </span>
+                  </div>
+                </div>
+                {/* Mensaje de Mizuki */}
+                <p className="font-mono text-pink-100 text-base sm:text-lg leading-relaxed animate-pulse">
+                  {mizukiTaunt}
+                </p>
+              </div>
+            ) : (
+              <div className="p-4 min-h-[100px] flex items-center">
+                <p
+                  className={`font-mono text-lg leading-relaxed ${isCritical ? "text-red-400" : "text-white"}`}
+                >
+                  * {message}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
