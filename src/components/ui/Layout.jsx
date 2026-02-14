@@ -7,7 +7,7 @@ const Layout = ({ children }) => {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center font-mono p-4">
       {/* Marco del juego */}
-      <div className="w-full max-w-6xl border-4 border-white p-8 relative min-h-[600px] flex flex-col">
+      <div className="w-full max-w-6xl border-4 border-white p-8 relative min-h-550px] flex flex-col">
         {/* Header: Vidas y Nivel */}
         <div className="flex justify-between items-center mb-6 border-b-2 border-gray-700 pb-2">
           <div className="text-xl">LVL {level}</div>

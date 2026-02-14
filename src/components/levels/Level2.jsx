@@ -450,10 +450,10 @@ export default function Level2() {
           </div>
         </div>
       ) : (
-        <>
-          {/* --- ÁREA DE JUEGO (IZQUIERDA) --- */}
+        <div className="flex flex-col items-center w-full max-w-3xl mx-auto gap-4">
+          {/* --- ÁREA DE JUEGO --- */}
           <div
-            className={`flex flex-col items-center flex-1 max-w-[600px] ${gameAppearing ? "animate-magnet-left" : ""}`}
+            className={`flex flex-col items-center w-full ${gameAppearing ? "animate-magnet-left" : ""}`}
           >
             {/* Indicador de progreso */}
             <div
@@ -605,34 +605,24 @@ export default function Level2() {
             </div>
           </div>
 
-          {/* --- LIVE CHAT MIKU (DERECHA) --- */}
+          {/* --- CAJA DE DIÁLOGO ESTILO UNDERTALE (ABAJO) --- */}
           <div
-            className={`w-64 flex flex-col border-4 border-white bg-black h-[500px] ${gameAppearing ? "animate-magnet-right" : ""}`}
+            className={`w-full border-4 border-white bg-black ${gameAppearing ? "animate-magnet-right" : ""}`}
           >
-            {/* Header del chat */}
-            <div className="border-b-2 border-white p-2 flex items-center gap-2 bg-gray-900">
-              <div className="w-10 h-10 border-2 border-teto-red overflow-hidden shrink-0">
-                <img
-                  src={mikuImg}
-                  alt="Miku"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-teto-red font-mono text-sm font-bold">
-                  MIKU
-                </span>
-                <span className="text-green-400 font-mono text-xs">
-                  ● EN LÍNEA
-                </span>
-              </div>
-            </div>
-
-            {/* Área de mensajes */}
-            <div className="flex-1 p-3 overflow-y-auto flex flex-col gap-2">
-              {/* Mensaje actual del sistema */}
-              <div className="bg-gray-800 border border-gray-600 rounded-lg p-2">
-                <p className="font-mono text-white text-xs leading-relaxed">
+            {/* Área de mensajes - Estilo Undertale */}
+            <div className="p-6 min-h-32">
+              {/* Mostrar Cirno si hay mensajes, sino el sistema */}
+              {chatHistory.length > 0 ? (
+                <p className="font-mono text-cyan-300 text-lg leading-relaxed">
+                  <TypewriterText
+                    key={`cirno-${chatHistory.length}`}
+                    text={chatHistory[chatHistory.length - 1]}
+                    voice="cirno"
+                    speed={25}
+                  />
+                </p>
+              ) : (
+                <p className="font-mono text-white text-lg leading-relaxed">
                   <TypewriterText
                     key={`msg-${currentTypingId}`}
                     text={`* ${message}`}
@@ -640,36 +630,10 @@ export default function Level2() {
                     speed={20}
                   />
                 </p>
-              </div>
-
-              {/* Historial de mensajes de Cirno (como si hackeara el chat) */}
-              {chatHistory.map((msg, index) => (
-                <div
-                  key={index}
-                  className="bg-cyan-900/50 border border-cyan-400 rounded-lg p-2"
-                >
-                  <p className="font-mono text-cyan-300 text-xs leading-relaxed">
-                    <TypewriterText
-                      key={`cirno-${index}`}
-                      text={msg}
-                      voice="cirno"
-                      speed={35}
-                    />
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Input/Botón área */}
-            <div className="border-t-2 border-white p-2 bg-gray-900">
-              <div className="text-gray-500 font-mono text-xs text-center py-2">
-                {gameState === "shuffling"
-                  ? "⚡ Barajando..."
-                  : "Sistema activo..."}
-              </div>
+              )}
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
