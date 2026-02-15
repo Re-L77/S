@@ -10,7 +10,6 @@ import cirnoImg from "../../assets/level2/cirno.png";
 const HEART_COLORS = {
   header: "#22c55e", // Verde
   logic: "#f97316", // Naranja
-  payload: "#3b82f6", // Azul
   signature: "#ec4899", // Rosa
 };
 
@@ -26,7 +25,7 @@ const PIECE_DATA = {
     systemMessages: [
       "> Data fragment recovered: HEADER_INFO",
       "> Chaos levels stabilized.",
-      "> Decryption progress: 25%",
+      "> Decryption progress: 33%",
     ],
     mikuComment:
       "Vaya, encontraste el inicio. Al menos ahora sabemos a quién va dirigida la carta. Ya no es solo ruido mental de Teto.",
@@ -41,29 +40,14 @@ const PIECE_DATA = {
     bossImg: cirnoImg,
     systemMessages: [
       "> Logic bypass successful.",
-      "> Encryption key part 2/4 found.",
-      "> Decryption progress: 50%",
+      "> Encryption key part 2/3 found.",
+      "> Decryption progress: 66%",
     ],
     mikuComment:
       "Bien hecho. Has logrado que Teto deje de pensar estupideces por un segundo. La lógica de 'si no lo digo, no pasa nada' ha sido eliminada.",
     position: "Superior Derecho",
   },
-  payload: {
-    name: "EMOTIONAL_PAYLOAD",
-    title: "El Contenido",
-    subtitle: "Superar el miedo a huir",
-    color: HEART_COLORS.payload,
-    bossName: "REIMU HAKUREI",
-    bossImg: null, // Se agregará cuando tengas el nivel 3
-    systemMessages: [
-      "> Firewall breached.",
-      "> Emotional payload downloading... [||||||||--] 75%",
-      "> Warning: High emotional content detected.",
-    ],
-    mikuComment:
-      "¡Lo atrapaste! Teto intentó cancelar el envío por pánico (Error 404: Valor Not Found), pero tú forzaste la conexión. Ya casi estamos dentro.",
-    position: "Inferior Izquierdo",
-  },
+
   signature: {
     name: "AUTH_SIGNATURE",
     title: "La Firma",
@@ -79,7 +63,7 @@ const PIECE_DATA = {
     ],
     mikuComment:
       "Contraseña correcta. Lo lograste, ¿eh? Bueno, ya no hay excusas. El sistema está abierto de par en par. Mira lo que esa tonta ha guardado para ti.",
-    position: "Inferior Derecho",
+    position: "Inferior",
   },
 };
 
@@ -203,17 +187,9 @@ export default function PieceUnlockedModal({ pieceKey, onClose }) {
                   pieceKey === "logic" ? "animate-pulse" : "opacity-50"
                 }
               />
-              {/* Parte Inferior Izquierda (payload) */}
+              {/* Parte Inferior (signature) - Ocupa toda la parte inferior */}
               <path
-                d="M2 14 L16 14 L16 30 L4 18 Q0 14 2 14 Z"
-                fill={pieceKey === "payload" ? piece.color : "#333"}
-                className={
-                  pieceKey === "payload" ? "animate-pulse" : "opacity-50"
-                }
-              />
-              {/* Parte Inferior Derecha (signature) - espejo exacto */}
-              <path
-                d="M30 14 L16 14 L16 30 L28 18 Q32 14 30 14 Z"
+                d="M2 14 L30 14 L16 30 Z"
                 fill={pieceKey === "signature" ? piece.color : "#333"}
                 className={
                   pieceKey === "signature" ? "animate-pulse" : "opacity-50"
@@ -296,7 +272,7 @@ export default function PieceUnlockedModal({ pieceKey, onClose }) {
         {/* Posición de la pieza */}
         <div className="text-center mt-4 text-gray-600 text-xs">
           Cuadrante: {piece.position} | Fragmento{" "}
-          {Object.keys(PIECE_DATA).indexOf(pieceKey) + 1}/4
+          {Object.keys(PIECE_DATA).indexOf(pieceKey) + 1}/3
         </div>
       </div>
     </div>
