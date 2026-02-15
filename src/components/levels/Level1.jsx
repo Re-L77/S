@@ -561,9 +561,10 @@ export default function Level1() {
             </div>
           </div>
 
-
           {/* --- CAJA DE DIÁLOGO ESTILO UNDERTALE (Mizuki o Sistema) --- */}
-          <div className={`w-full border-4 ${mizukiTaunt ? "border-pink-400" : "border-white"} bg-black transition-colors duration-300`}>
+          <div
+            className={`w-full border-4 ${mizukiTaunt ? "border-pink-400" : "border-white"} bg-black transition-colors duration-300`}
+          >
             {mizukiTaunt ? (
               <div className="p-4">
                 {/* Header Integrado de Mizuki */}

@@ -67,7 +67,7 @@ const PIECE_DATA = {
   signature: {
     name: "AUTH_SIGNATURE",
     title: "La Firma",
-    subtitle: "Validación de que te conocen",
+    subtitle: "Resiliencia",
     color: HEART_COLORS.signature,
     bossName: "GUMI",
     bossImg: null, // Se agregará cuando tengas la imagen
