@@ -6,11 +6,10 @@ import PieceUnlockedModal from "./PieceUnlockedModal";
 const HEART_COLORS = {
   header: "#22c55e", // Verde
   logic: "#f97316", // Naranja (complementario del azul)
-  payload: "#3b82f6", // Azul
   signature: "#ec4899", // Rosa/Magenta (complementario del verde)
 };
 
-// Componente del corazón simétrico dividido en 4 cuadrantes
+// Componente del corazón simétrico dividido en 3 cuadrantes
 const PixelHeart = ({ pieces, size = 40 }) => {
   // Corazón simétrico perfecto: viewBox 0 0 32 32, centro en x=16
   return (
@@ -32,15 +31,9 @@ const PixelHeart = ({ pieces, size = 40 }) => {
         fill={pieces.logic ? HEART_COLORS.logic : "#333"}
         className={pieces.logic ? "animate-pulse" : "opacity-40"}
       />
-      {/* Parte Inferior Izquierda (payload) - Azul */}
+      {/* Parte Inferior (signature) - Rosa - Ocupa toda la parte inferior */}
       <path
-        d="M2 14 L16 14 L16 30 L4 18 Q0 14 2 14 Z"
-        fill={pieces.payload ? HEART_COLORS.payload : "#333"}
-        className={pieces.payload ? "animate-pulse" : "opacity-40"}
-      />
-      {/* Parte Inferior Derecha (signature) - Rosa (espejo exacto) */}
-      <path
-        d="M30 14 L16 14 L16 30 L28 18 Q32 14 30 14 Z"
+        d="M2 14 L30 14 L16 30 Z"
         fill={pieces.signature ? HEART_COLORS.signature : "#333"}
         className={pieces.signature ? "animate-pulse" : "opacity-40"}
       />
@@ -100,7 +93,7 @@ const Layout = ({ children }) => {
                     <Lock size={10} /> ENCRYPTED
                   </span>
                   <span className="text-gray-600 text-[10px]">
-                    {Object.values(heartPieces).filter(Boolean).length}/4
+                    {Object.values(heartPieces).filter(Boolean).length}/3
                     fragmentos
                   </span>
                 </>
@@ -109,7 +102,7 @@ const Layout = ({ children }) => {
           </div>
 
           <div className="flex gap-1">
-            {[...Array(4)].map((_, i) => (
+            {[...Array(3)].map((_, i) => (
               <Heart
                 key={i}
                 fill={i < lives ? "#ff3366" : "black"}

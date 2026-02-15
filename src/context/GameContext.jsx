@@ -6,13 +6,12 @@ const GameContext = createContext();
 const LEVEL_TO_PIECE = {
   1: "header", // Nivel 1 -> Encabezado
   2: "logic", // Nivel 2 -> Protocolo/Lógica
-  3: "payload", // Nivel 3 -> Contenido emocional
-  4: "signature", // Nivel 4 -> Firma/Autenticación
+  3: "signature", // Nivel 3 -> Firma/Autenticación
 };
 
 export const GameProvider = ({ children }) => {
-  const [level, setLevel] = useState(3); // Nivel actual
-  const [lives, setLives] = useState(4); // Vidas globales (Miku)
+  const [level, setLevel] = useState(1); // Nivel actual
+  const [lives, setLives] = useState(3); // Vidas globales (Miku)
   const [gameState, setGameState] = useState("intro"); // intro, playing, won, gameover
   const [checkpoint, setCheckpoint] = useState(1); // Último nivel completado + 1
 
@@ -20,8 +19,7 @@ export const GameProvider = ({ children }) => {
   const [heartPieces, setHeartPieces] = useState({
     header: false, // Nivel 1 - El Encabezado
     logic: false, // Nivel 2 - El Protocolo
-    payload: false, // Nivel 3 - El Contenido
-    signature: false, // Nivel 4 - La Firma
+    signature: false, // Nivel 3 - La Firma
   });
 
   // Para mostrar el modal de pieza desbloqueada
@@ -29,8 +27,8 @@ export const GameProvider = ({ children }) => {
 
   // Calcular progreso de desencriptación
   const decryptionProgress =
-    Object.values(heartPieces).filter(Boolean).length * 25;
-  const isFullyDecrypted = decryptionProgress === 100;
+    Math.round(Object.values(heartPieces).filter(Boolean).length * 33.33);
+  const isFullyDecrypted = decryptionProgress >= 99;
 
   // Acción: Iniciar el juego (después de la intro)
   const startGame = () => {
@@ -46,9 +44,9 @@ export const GameProvider = ({ children }) => {
     });
   };
 
-  // Acción: Curarse (ganar vidas, máximo 4)
+  // Acción: Curarse (ganar vidas, máximo 3)
   const heal = (amount = 1) => {
-    setLives((prev) => Math.min(4, prev + amount));
+    setLives((prev) => Math.min(3, prev + amount));
   };
 
   // Acción: Completar un nivel y desbloquear pieza del corazón
@@ -77,10 +75,9 @@ export const GameProvider = ({ children }) => {
     setHeartPieces({
       header: true,
       logic: true,
-      payload: true,
       signature: true,
     });
-    setLevel(5); // Nivel después del último
+    setLevel(4); // Nivel después del último
     setGameState("won");
   };
 
@@ -93,20 +90,19 @@ export const GameProvider = ({ children }) => {
   // Reiniciar desde el último checkpoint
   const restartFromCheckpoint = () => {
     setLevel(checkpoint);
-    setLives(4);
+    setLives(3);
     setGameState("playing");
   };
 
   // Reiniciar todo el juego
   const restartGame = () => {
     setLevel(1);
-    setLives(4);
+    setLives(3);
     setGameState("intro");
     setCheckpoint(1);
     setHeartPieces({
       header: false,
       logic: false,
-      payload: false,
       signature: false,
     });
     setUnlockedPiece(null);
