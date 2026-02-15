@@ -7,6 +7,9 @@ import dingSfx from "../assets/sound/ui/undertale-ding.mp3";
 import weaponPullSfx from "../assets/sound/ui/deltarune-weapons-pull.mp3";
 import sqekSfx from "../assets/sound/ui/sqek.mp3";
 import whoshSfx from "../assets/sound/ui/whosh.wav";
+import attackSfx from "../assets/sound/ui/attack.mp3";
+import healSfx from "../assets/sound/ui/heal.mp3";
+import hitSfx from "../assets/sound/ui/undertale-sound-effect-attack-hit.mp3";
 
 const AudioContext = createContext(null);
 
@@ -15,6 +18,7 @@ const VOICE_CONFIGS = {
   miku: { baseFreq: 900, variation: 2, duration: 0.03 },
   cirno: { baseFreq: 960, variation: 10, duration: 0.06 },
   mizuki: { baseFreq: 520, variation: 8, duration: 0.045 },
+  teto: { baseFreq: 400, variation: 15, duration: 0.05 },
   system: { baseFreq: 300, variation: 2, duration: 0.03 },
 };
 
@@ -26,12 +30,17 @@ const SFX_FILES = {
   weaponPull: weaponPullSfx,
   sqek: sqekSfx,
   whosh: whoshSfx,
+  attack: attackSfx,
+  heal: healSfx,
+  hit: hitSfx,
 };
 
 export function AudioProvider({ children }) {
   const audioContextRef = useRef(null);
   const initializedRef = useRef(false);
   const audioElementsRef = useRef({});
+  const lastSoundTimeRef = useRef(0); // Para throttling de voces
+  const VOICE_THROTTLE_MS = 25; // Mínimo 25ms entre sonidos de voz
 
   // Inicializar el AudioContext (debe llamarse desde un evento de usuario)
   const initAudio = useCallback(() => {
@@ -50,10 +59,17 @@ export function AudioProvider({ children }) {
     }
   }, []);
 
-  // Reproducir sonido de letra
+  // Reproducir sonido de letra (con throttling para evitar saturación)
   const playSound = useCallback((voice = "system") => {
     if (!audioContextRef.current || audioContextRef.current.state === "closed")
       return;
+
+    // Throttling: evitar reproducir sonidos muy seguidos
+    const now = Date.now();
+    if (now - lastSoundTimeRef.current < VOICE_THROTTLE_MS) {
+      return; // Ignorar si es muy pronto
+    }
+    lastSoundTimeRef.current = now;
 
     // Resumir si está suspendido
     if (audioContextRef.current.state === "suspended") {

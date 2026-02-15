@@ -46,6 +46,11 @@ export const GameProvider = ({ children }) => {
     });
   };
 
+  // Acción: Curarse (ganar vidas, máximo 4)
+  const heal = (amount = 1) => {
+    setLives((prev) => Math.min(4, prev + amount));
+  };
+
   // Acción: Completar un nivel y desbloquear pieza del corazón
   const completeLevel = (levelNum) => {
     const pieceKey = LEVEL_TO_PIECE[levelNum];
@@ -120,6 +125,7 @@ export const GameProvider = ({ children }) => {
         checkpoint,
         startGame,
         takeDamage,
+        heal,
         nextLevel,
         completeLevel,
         closePieceModal,
