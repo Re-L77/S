@@ -63,9 +63,9 @@ const Layout = ({ children }) => {
   } = useGame();
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center font-mono p-4">
+    <div className="h-screen w-screen bg-black text-white flex flex-col font-mono overflow-hidden">
       {/* Marco del juego */}
-      <div className="w-full max-w-6xl border-4 border-white p-8 relative min-h-[550px] flex flex-col">
+      <div className="flex-1 w-full border-2 border-white p-4 flex flex-col overflow-hidden">
         {/* Header: Vidas, Nivel y Corazón */}
         <div className="flex justify-between items-center mb-6 border-b-2 border-gray-700 pb-2">
           <div className="text-xl">LVL {level}</div>
@@ -120,7 +120,7 @@ const Layout = ({ children }) => {
         </div>
 
         {/* Área del Minijuego */}
-        <div className="flex-1 flex flex-col items-center justify-center">
+        <div className="flex-1 flex flex-col items-center justify-center overflow-auto">
           {children}
         </div>
       </div>

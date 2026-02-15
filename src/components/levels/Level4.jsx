@@ -20,8 +20,8 @@ import tetoAtaque3 from "../../assets/level4/ataque3.gif";
 import level4Bgm from "../../assets/sound/levels/level4.mp3";
 
 export default function Level4() {
-  const { nextLevel, completeLevel } = useGame();
-  const { playSfx } = useAudio();
+  const { nextLevel, completeLevel, lives } = useGame();
+  const { playSfx, initAudio } = useAudio();
   const bgmRef = useRef(null);
 
   // TETO INTRO - Presentación dramática del boss final
@@ -60,6 +60,15 @@ export default function Level4() {
   // --- EFECTOS DE ATAQUE ---
   const [showAttackEffect, setShowAttackEffect] = useState(false);
   const [attackHearts, setAttackHearts] = useState([]);
+
+  // --- PLAYER STATS (basado en vidas del GameContext) ---
+  const playerMaxHp = 100;
+  const playerHp = lives * 25; // Cada vida = 25 HP
+  const [items, setItems] = useState([
+    { id: 1, name: "Galleta", heal: 5 },
+    { id: 2, name: "Pan Frances", heal: 8 },
+    { id: 3, name: "Onigiri", heal: 12 },
+  ]);
 
   const TYPEWRITER_SPEED = 40; // Un poco más lento para evitar cortes de audio
 
@@ -100,6 +109,7 @@ export default function Level4() {
 
   // --- HANDLER: TETO INTRO (interactivo como Mizuki/Cirno) ---
   const handleTetoDialogue = () => {
+    initAudio(); // Inicializar audio en el primer clic
     playSfx("select");
     if (tetoIntroStep < TETO_INTRO.length - 1) {
       setTetoIntroStep((prev) => prev + 1);
@@ -164,8 +174,12 @@ export default function Level4() {
       setMenuState("act");
       setDialogue("");
     } else if (action === "ITEM") {
-      setDialogue("Tu inventario está vacío. Solo te tienes a ti mismo.");
-      setMenuState("main");
+      if (items.length === 0) {
+        setDialogue("Tu inventario está vacío. Solo te tienes a ti mismo.");
+      } else {
+        setMenuState("item");
+        setDialogue("* ¿Qué item usarás?");
+      }
     } else if (action === "MERCY") {
       if (!mercyBroken) {
         setDialogue("Teto: ¿PIEDAD? ¡¡NO CONOCOZCO ESA PALABRA!!");
@@ -191,7 +205,7 @@ export default function Level4() {
     playSfx("select");
     if (subAction === "CHECK") {
       setDialogue(
-        `TETO - HP ${tetoHp}/${maxHp}\nATK ?? DEF ??\nLa Guardiana Definitiva. No puedes vencerla peleando.`,
+        `TETO - HP ${tetoHp}/${maxHp} | ATK ?? DEF ?? | No puedes vencerla peleando.`,
       );
       setTetoFace("inteligente");
       setTimeout(() => setTetoFace("principal"), 2000);
@@ -247,6 +261,21 @@ export default function Level4() {
     setMenuState("main");
     setDialogue("...");
     setTetoFace("principal");
+  };
+
+  const handleItem = (item) => {
+    playSfx("heal");
+    setItems((prev) => prev.filter((i) => i.id !== item.id));
+    setMenuState("lock"); // Bloquear input mientras se muestra el texto
+    setDialogue(`* Usaste ${item.name}. Te sientes mejor...`);
+    setTetoFace("burla");
+    setTimeout(() => {
+      setDialogue("Teto: ¿Eso es todo lo que tienes? JAJAJA.");
+      setTimeout(() => {
+        setTetoFace("principal");
+        setMenuState("main");
+      }, 2000);
+    }, 2500); // Esperar a que termine el primer mensaje
   };
 
   // --- RENDER HELPERS ---
@@ -445,62 +474,61 @@ export default function Level4() {
 
       {/* --- BATTLE LAYER --- */}
       <div
-        className={`z-10 w-full max-w-4xl flex flex-col items-center gap-6 p-4 transition-opacity duration-1000 ${gameState === "battle" ? "opacity-100" : "opacity-0"}`}
+        className={`z-10 w-full flex flex-col items-center gap-4 p-4 transition-opacity duration-1000 ${gameState === "battle" ? "opacity-100" : "opacity-0"}`}
       >
-        {/* TETO SPRITE */}
-        <div className="relative min-h-[320px] flex items-center justify-center">
-          {/* HEART ATTACK EFFECT */}
-          {showAttackEffect &&
-            attackHearts.map((heart) => (
-              <span
-                key={heart.id}
-                className="heart-attack"
-                style={{
-                  left: `${heart.x}%`,
-                  bottom: "30%",
-                  animationDelay: `${heart.delay}s`,
-                }}
-              >
-                ❤️
-              </span>
-            ))}
+        {/* TOP SECTION: Teto + Boss HP */}
+        <div className="flex flex-col items-center gap-2 w-full max-w-4xl">
+          {/* TETO SPRITE */}
+          <div className="relative h-52 md:h-64 flex items-center justify-center">
+            {/* HEART ATTACK EFFECT */}
+            {showAttackEffect &&
+              attackHearts.map((heart) => (
+                <span
+                  key={heart.id}
+                  className="heart-attack"
+                  style={{
+                    left: `${heart.x}%`,
+                    bottom: "30%",
+                    animationDelay: `${heart.delay}s`,
+                  }}
+                >
+                  ❤
+                </span>
+              ))}
 
-          <img
-            src={getCurrentTetoImg()}
-            alt="Teto"
-            className={`
-                    w-64 h-64 md:w-80 md:h-80 object-contain drop-shadow-[0_0_30px_rgba(255,0,0,0.4)]
-                    transition-all duration-300
-                    ${tetoFace === "burla" ? "animate-bounce" : "animate-float"}
-                    ${tetoFace === "dedo" ? "scale-110" : ""}
-                    ${tetoFace === "dolor" ? "hurt-shake" : ""}
-                `}
-            draggable={false}
-          />
-
-          {/* DAMAGE SQUEAK VISUAL - Optional */}
-        </div>
-
-        {/* HP BAR (BOSS) */}
-        <div className="w-full max-w-md flex items-center gap-4 text-xl font-bold font-dos">
-          <span className="text-yellow-400">TETO</span>
-          <div className="flex-1 h-6 bg-red-900 border-2 border-white relative transition-all">
-            <div
-              className="absolute top-0 left-0 h-full bg-yellow-400 transition-all duration-500"
-              style={{ width: `${(tetoHp / maxHp) * 100}%` }}
-            ></div>
+            <img
+              src={getCurrentTetoImg()}
+              alt="Teto"
+              className={`
+                      w-48 h-48 md:w-60 md:h-60 object-contain drop-shadow-[0_0_30px_rgba(255,0,0,0.4)]
+                      transition-all duration-300
+                      ${tetoFace === "burla" ? "animate-bounce" : "animate-float"}
+                      ${tetoFace === "dedo" ? "scale-110" : ""}
+                      ${tetoFace === "dolor" ? "hurt-shake" : ""}
+                  `}
+              draggable={false}
+            />
           </div>
-          <span className="text-white">
-            HP {tetoHp}/{maxHp}
-          </span>
+
+          {/* HP BAR (BOSS) */}
+          <div className="w-full flex items-center gap-3 text-base font-bold font-dos">
+            <span className="text-yellow-400 w-14">TETO</span>
+            <div className="flex-1 h-4 bg-red-900 border-2 border-white relative transition-all">
+              <div
+                className="absolute top-0 left-0 h-full bg-yellow-400 transition-all duration-500"
+                style={{ width: `${(tetoHp / maxHp) * 100}%` }}
+              ></div>
+            </div>
+            <span className="text-white w-20 text-right text-sm">
+              {tetoHp}/{maxHp}
+            </span>
+          </div>
         </div>
 
         {/* TEXT BOX */}
-        <div className="w-full h-52 border-4 border-white bg-black p-6 relative shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-          <span className="absolute top-2 left-3 text-3xl animate-pulse">
-            *
-          </span>
-          <div className="ml-8 text-2xl md:text-3xl leading-relaxed whitespace-pre-wrap font-dos">
+        <div className="w-full max-w-4xl min-h-50 border-4 border-white bg-black p-3 relative shadow-[0_0_20px_rgba(255,255,255,0.2)] overflow-hidden">
+          <span className="absolute top-1 left-2 text-xl animate-pulse">*</span>
+          <div className="ml-6 text-base md:text-lg leading-relaxed whitespace-pre-wrap font-dos">
             <TypewriterText
               text={dialogue}
               speed={TYPEWRITER_SPEED}
@@ -522,61 +550,98 @@ export default function Level4() {
           )}
         </div>
 
-        {/* ACTION BUTTONS (Hidden during cutscenes if we wanted, but present in battle) */}
-        <div className="w-full flex justify-between gap-2 md:gap-4 mt-2">
-          {menuState === "act" ? (
-            <div className="flex gap-4 w-full justify-center">
-              <ActionButton
-                label="* CHECK"
-                onClick={() => handleAct("CHECK")}
-                color="border-green-400 text-green-400"
-              />
-              <ActionButton
-                label="* TALK"
-                onClick={() => handleAct("TALK")}
-                color="border-green-400 text-green-400"
-              />
-              <ActionButton
-                label="< BACK"
-                onClick={handleBack}
-                color="border-gray-400 text-gray-400"
-              />
+        {/* BOTTOM SECTION: Player HP + Action Buttons */}
+        <div className="w-full max-w-4xl flex flex-col gap-2">
+          {/* HP BAR (PLAYER) */}
+          <div className="w-full flex items-center gap-3 text-base font-bold font-dos">
+            <span className="text-red-400 w-14">TU</span>
+            <div className="flex-1 h-4 bg-gray-800 border-2 border-white relative transition-all">
+              <div
+                className="absolute top-0 left-0 h-full bg-red-500 transition-all duration-500"
+                style={{ width: `${(playerHp / playerMaxHp) * 100}%` }}
+              ></div>
             </div>
-          ) : (
-            <>
-              <ActionButton
-                label="⚔️ FIGHT"
-                onClick={() => handleButton("FIGHT")}
-                color="border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
-                disabled={menuState === "lock"}
-              />
-              <ActionButton
-                label="🗣️ ACT"
-                onClick={() => handleButton("ACT")}
-                color="border-green-500 text-green-500 hover:bg-green-500 hover:text-black"
-                disabled={menuState === "lock"}
-              />
-              <ActionButton
-                label="🎒 ITEM"
-                onClick={() => handleButton("ITEM")}
-                color="border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
-                disabled={menuState === "lock"}
-              />
-              <ActionButton
-                label={mercyBroken ? "💥 DESTRUIDO" : "❤️ MERCY"}
-                onClick={() => handleButton("MERCY")}
-                color={
-                  mercyBroken
-                    ? "border-gray-800 text-gray-800 bg-gray-900 cursor-not-allowed line-through"
-                    : mercyBreaking
-                      ? "border-red-500 text-red-500 shake-destroy"
-                      : "border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black"
-                }
-                disabled={mercyBroken || menuState === "lock"}
-                breaking={mercyBreaking}
-              />
-            </>
-          )}
+            <span className="text-white w-20 text-right text-sm">
+              {playerHp}/{playerMaxHp} HP
+            </span>
+          </div>
+
+          {/* ACTION BUTTONS */}
+          <div className="w-full flex justify-between gap-3">
+            {menuState === "act" ? (
+              <div className="flex gap-3 w-full justify-center">
+                <ActionButton
+                  label="* CHECK"
+                  onClick={() => handleAct("CHECK")}
+                  color="bg-gray-900 border-white text-white hover:bg-white hover:text-black"
+                />
+                <ActionButton
+                  label="* TALK"
+                  onClick={() => handleAct("TALK")}
+                  color="bg-gray-900 border-white text-white hover:bg-white hover:text-black"
+                />
+                <ActionButton
+                  label="< BACK"
+                  onClick={handleBack}
+                  color="bg-gray-900 border-gray-500 text-gray-400 hover:bg-gray-700"
+                />
+              </div>
+            ) : menuState === "item" ? (
+              <div className="flex gap-3 w-full justify-center">
+                {items.map((item) => (
+                  <ActionButton
+                    key={item.id}
+                    label={`${item.name} (+${item.heal})`}
+                    onClick={() => handleItem(item)}
+                    color="bg-gray-900 border-green-400 text-green-400 hover:bg-green-900"
+                  />
+                ))}
+                <ActionButton
+                  label="< BACK"
+                  onClick={handleBack}
+                  color="bg-gray-900 border-gray-500 text-gray-400 hover:bg-gray-700"
+                />
+              </div>
+            ) : (
+              <>
+                <ActionButton
+                  label="FIGHT"
+                  onClick={() => handleButton("FIGHT")}
+                  color="bg-gray-900 border-white text-white hover:bg-white hover:text-black"
+                  disabled={menuState === "lock"}
+                />
+                <ActionButton
+                  label="ACT"
+                  onClick={() => handleButton("ACT")}
+                  color="bg-gray-900 border-white text-white hover:bg-white hover:text-black"
+                  disabled={menuState === "lock"}
+                />
+                <ActionButton
+                  label={`ITEM${items.length > 0 ? ` (${items.length})` : ""}`}
+                  onClick={() => handleButton("ITEM")}
+                  color={
+                    items.length > 0
+                      ? "bg-gray-900 border-white text-white hover:bg-white hover:text-black"
+                      : "bg-gray-900 border-gray-600 text-gray-600"
+                  }
+                  disabled={menuState === "lock"}
+                />
+                <ActionButton
+                  label={mercyBroken ? "DESTRUIDO" : "MERCY"}
+                  onClick={() => handleButton("MERCY")}
+                  color={
+                    mercyBroken
+                      ? "bg-gray-900 border-gray-700 text-gray-600 cursor-not-allowed line-through"
+                      : mercyBreaking
+                        ? "bg-red-900 border-red-500 text-red-300 shake-destroy"
+                        : "bg-gray-900 border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black"
+                  }
+                  disabled={mercyBroken || menuState === "lock"}
+                  breaking={mercyBreaking}
+                />
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -589,7 +654,7 @@ function ActionButton({ label, onClick, color, disabled, breaking }) {
       onClick={onClick}
       disabled={disabled}
       className={`
-                flex-1 py-4 text-lg md:text-xl font-bold border-4 transition-all duration-200 uppercase font-dos
+                flex-1 py-3 text-base md:text-lg font-bold border-3 transition-all duration-200 uppercase font-dos
                 ${color}
                 ${breaking ? "shake-destroy" : ""}
                 ${disabled ? "opacity-50 cursor-not-allowed" : "active:scale-95 hover:shadow-[0_0_15px_currentColor]"}
