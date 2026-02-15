@@ -79,7 +79,6 @@ const MIZUKI_INTRO = [
 // BURLAS DE MIZUKI (cuando el jugador falla)
 const MIZUKI_INSULTS = [
   "Mizuki: ¿En serio? Esos no se parecen en nada~ ♪",
-  "Mizuki: Tu memoria es tan mala como tu gusto musical.",
   "Mizuki: *suspira* Esperaba más de ti, hacker.",
   "Mizuki: ¿Tus ojos funcionan? Porque esos Fumos son DIFERENTES.",
   "Mizuki: Jajaja~ Teto estará a salvo si sigues así.",
