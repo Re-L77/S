@@ -78,7 +78,7 @@ const PIECE_DATA = {
       "> Decryption progress: 100%",
     ],
     mikuComment:
-      "Contraseña correcta. Realmente la conoces, ¿eh? Bueno, ya no hay excusas. El sistema está abierto de par en par. Mira lo que esa tonta ha guardado para ti.",
+      "Contraseña correcta. Lo lograste, ¿eh? Bueno, ya no hay excusas. El sistema está abierto de par en par. Mira lo que esa tonta ha guardado para ti.",
     position: "Inferior Derecho",
   },
 };

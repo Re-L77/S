@@ -20,7 +20,7 @@ import tetoAtaque3 from "../../assets/level4/ataque3.gif";
 import level4Bgm from "../../assets/sound/levels/level4.mp3";
 
 export default function Level4() {
-  const { nextLevel, completeLevel, lives } = useGame();
+  const { nextLevel, completeLevel, lives, heal } = useGame();
   const { playSfx, initAudio } = useAudio();
   const bgmRef = useRef(null);
 
@@ -60,6 +60,7 @@ export default function Level4() {
   // --- EFECTOS DE ATAQUE ---
   const [showAttackEffect, setShowAttackEffect] = useState(false);
   const [attackHearts, setAttackHearts] = useState([]);
+  const [tetoHidden, setTetoHidden] = useState(false); // Teto desaparece al final
 
   // --- PLAYER STATS (basado en vidas del GameContext) ---
   const playerMaxHp = 100;
@@ -146,21 +147,27 @@ export default function Level4() {
         setTetoFace("dolor"); // Teto llorando cuando la atacan
 
         if (newHp <= 0) {
-          // FAKE DEATH / HEAL
-          setDialogue("Teto: ...");
+          // TETO ES DERROTADA
+          setDialogue("Teto: ...imposible.");
           setMenuState("lock"); // Bloquear input
+          setTetoFace("dolor");
           setTimeout(() => {
-            playSfx("heal"); // Sonido cura
-            setTetoHp(maxHp);
-            setTetoFace("burla");
-            setDialogue(
-              "Teto: JAJAJA. ¿Crees que simples números pueden borrarme?",
-            );
+            setDialogue("Teto: No... no puede ser...");
             setTimeout(() => {
-              setTetoFace("principal");
-              setMenuState("main");
+              setDialogue("Teto: La llave... tómala... ya no importa...");
+              setKeyRevealed(true);
+              playSfx("ding");
+              setTimeout(() => {
+                setTetoHidden(true);
+                playSfx("whosh");
+                if (bgmRef.current) {
+                  bgmRef.current.pause();
+                  bgmRef.current.currentTime = 0;
+                }
+                setDialogue("* La llave cayó al suelo.");
+              }, 3000);
             }, 3000);
-          }, 1500);
+          }, 2000);
         } else {
           setDialogue(`Golpeas a Teto. -${damage} HP.`);
           setMenuState("main");
@@ -211,51 +218,28 @@ export default function Level4() {
       setTimeout(() => setTetoFace("principal"), 2000);
       setMenuState("main");
     } else if (subAction === "TALK") {
-      progessPacifistRoute();
+      // Hostile dialogue, no pacifist route
+      const hostileTalks = [
+        "Teto: ¿Hablar? ¿Crees que me importa lo que digas?",
+        "Teto: No eres digna de este secreto.",
+        "Teto: Tu insistencia es patética.",
+        "Teto: Este corazón jamás será tuyo.",
+        "Teto: Fui creada para proteger esto de gente como tú.",
+        "¿De verdad crees que puedes derrotarme?",
+        "Teto: No tienes nada. Ni valor, ni fuerza.",
+        "Teto: Eres solo una intrusa.",
+        "Teto: No me das lástima, me das rabia.",
+        "Teto: ...",
+      ];
+      const idx = Math.floor(Math.random() * hostileTalks.length);
+      setDialogue(hostileTalks[idx]);
+      setTetoFace("desacuerdo");
+      setTimeout(() => setTetoFace("principal"), 1500);
       setMenuState("main");
     }
   };
 
-  const progessPacifistRoute = () => {
-    const talks = [
-      { text: "Teto: ¿Hablar? ¿Después de todo?", face: "desacuerdo" },
-      { text: "Teto: No hay nada de qué hablar. Vete.", face: "negar" },
-      {
-        text: "Teto: ... ¿Por qué insistes? Este mundo no es real.",
-        face: "inteligente",
-      },
-      {
-        text: "Teto: Yo fui creada para proteger este secreto.",
-        face: "principal",
-      },
-      {
-        text: "Teto: Pero tu determinación... es ilógica.",
-        face: "inteligente",
-      },
-      { text: "Teto: ... Quizás mereces saberlo.", face: "principal" },
-      { text: "CLAVE: [ T3T0_KASANE_0401 ]", face: "inteligente", win: true },
-    ];
-
-    // Si ya ganamos, no avanzar más
-    if (keyRevealed) {
-      setDialogue("Teto: Ya tienes la clave. Úsala.");
-      return;
-    }
-
-    const current = talks[Math.min(talkCount, talks.length - 1)];
-    setDialogue(current.text);
-    setTetoFace(current.face);
-
-    if (talkCount < talks.length - 1) {
-      setTalkCount((p) => p + 1);
-    } else {
-      // WIN CONDITION
-      if (current.win) {
-        setKeyRevealed(true);
-        playSfx("ding");
-      }
-    }
-  };
+  // Pacifist route fully removed
 
   const handleBack = () => {
     setMenuState("main");
@@ -265,17 +249,13 @@ export default function Level4() {
 
   const handleItem = (item) => {
     playSfx("heal");
+    heal(1); // Curar al jugador (+1 vida)
     setItems((prev) => prev.filter((i) => i.id !== item.id));
     setMenuState("lock"); // Bloquear input mientras se muestra el texto
-    setDialogue(`* Usaste ${item.name}. Te sientes mejor...`);
-    setTetoFace("burla");
+    setDialogue(`* Usaste ${item.name}. Recuperaste 25 HP.`);
     setTimeout(() => {
-      setDialogue("Teto: ¿Eso es todo lo que tienes? JAJAJA.");
-      setTimeout(() => {
-        setTetoFace("principal");
-        setMenuState("main");
-      }, 2000);
-    }, 2500); // Esperar a que termine el primer mensaje
+      setMenuState("main");
+    }, 1500);
   };
 
   // --- RENDER HELPERS ---
@@ -501,28 +481,31 @@ export default function Level4() {
               alt="Teto"
               className={`
                       w-48 h-48 md:w-60 md:h-60 object-contain drop-shadow-[0_0_30px_rgba(255,0,0,0.4)]
-                      transition-all duration-300
+                      transition-all duration-500
                       ${tetoFace === "burla" ? "animate-bounce" : "animate-float"}
                       ${tetoFace === "dedo" ? "scale-110" : ""}
                       ${tetoFace === "dolor" ? "hurt-shake" : ""}
+                      ${tetoHidden ? "opacity-0 scale-0 translate-y-20" : "opacity-100"}
                   `}
               draggable={false}
             />
           </div>
 
-          {/* HP BAR (BOSS) */}
-          <div className="w-full flex items-center gap-3 text-base font-bold font-dos">
-            <span className="text-yellow-400 w-14">TETO</span>
-            <div className="flex-1 h-4 bg-red-900 border-2 border-white relative transition-all">
-              <div
-                className="absolute top-0 left-0 h-full bg-yellow-400 transition-all duration-500"
-                style={{ width: `${(tetoHp / maxHp) * 100}%` }}
-              ></div>
+          {/* HP BAR (BOSS) - oculta si Teto huyó */}
+          {!tetoHidden && (
+            <div className="w-full flex items-center gap-3 text-base font-bold font-dos">
+              <span className="text-yellow-400 w-14">TETO</span>
+              <div className="flex-1 h-4 bg-red-900 border-2 border-white relative transition-all">
+                <div
+                  className="absolute top-0 left-0 h-full bg-yellow-400 transition-all duration-500"
+                  style={{ width: `${(tetoHp / maxHp) * 100}%` }}
+                ></div>
+              </div>
+              <span className="text-white w-20 text-right text-sm">
+                {tetoHp}/{maxHp}
+              </span>
             </div>
-            <span className="text-white w-20 text-right text-sm">
-              {tetoHp}/{maxHp}
-            </span>
-          </div>
+          )}
         </div>
 
         {/* TEXT BOX */}
@@ -591,7 +574,7 @@ export default function Level4() {
                 {items.map((item) => (
                   <ActionButton
                     key={item.id}
-                    label={`${item.name} (+${item.heal})`}
+                    label={`${item.name} (+25 HP)`}
                     onClick={() => handleItem(item)}
                     color="bg-gray-900 border-green-400 text-green-400 hover:bg-green-900"
                   />
@@ -604,12 +587,14 @@ export default function Level4() {
               </div>
             ) : (
               <>
-                <ActionButton
-                  label="FIGHT"
-                  onClick={() => handleButton("FIGHT")}
-                  color="bg-gray-900 border-white text-white hover:bg-white hover:text-black"
-                  disabled={menuState === "lock"}
-                />
+                {!tetoHidden && (
+                  <ActionButton
+                    label="FIGHT"
+                    onClick={() => handleButton("FIGHT")}
+                    color="bg-gray-900 border-white text-white hover:bg-white hover:text-black"
+                    disabled={menuState === "lock"}
+                  />
+                )}
                 <ActionButton
                   label="ACT"
                   onClick={() => handleButton("ACT")}
