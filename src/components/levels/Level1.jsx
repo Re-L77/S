@@ -438,7 +438,7 @@ export default function Level1() {
           </div>
 
           <h1 className="text-4xl font-bold font-mono text-pink-400 mb-4 animate-pulse">
-            ♥ GUARDIANA DE MEMORIA ♥
+            ♥ Mizuki ♥
           </h1>
 
           <div className="w-full border-4 border-pink-400 bg-black p-6">

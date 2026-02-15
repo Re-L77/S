@@ -126,8 +126,8 @@ const Layout = ({ children }) => {
         />
       )}
 
-      {/* Botones DEBUG para testing - solo desarrollo */}
-      {import.meta.env.DEV && (
+      {/* Debug buttons hidden for demo */}
+      {/* {import.meta.env.DEV && (
         <div className="fixed bottom-4 right-4 flex flex-col gap-2 opacity-50 hover:opacity-100 transition-all">
           <button
             onClick={debugWinAll}
@@ -148,7 +148,7 @@ const Layout = ({ children }) => {
             💔 LOSE LIFE
           </button>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

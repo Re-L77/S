@@ -4,6 +4,7 @@ import LevelPlaceholder from "./levels/LevelPlaceholder";
 import GameOverScreen from "./ui/GameOverScreen";
 import Level2 from "./levels/Level2";
 import Level3 from "./levels/Level3";
+import ContinuaraScreen from "./ui/ContinuaraScreen";
 
 const GameManager = () => {
   const { level, gameState } = useGame();
@@ -20,7 +21,7 @@ const GameManager = () => {
     case 2:
       return <Level2 />;
     case 3:
-      return <Level3 />;
+      return <ContinuaraScreen />;
     // ... añade casos hasta el 7
     default:
       return <div className="text-green-400">¡GANASTE EL CORAZÓN DE TETO!</div>;
