@@ -11,7 +11,7 @@ const LEVEL_TO_PIECE = {
 };
 
 export const GameProvider = ({ children }) => {
-  const [level, setLevel] = useState(1); // Nivel actual
+  const [level, setLevel] = useState(3); // Nivel actual
   const [lives, setLives] = useState(4); // Vidas globales (Miku)
   const [gameState, setGameState] = useState("intro"); // intro, playing, won, gameover
   const [checkpoint, setCheckpoint] = useState(1); // Último nivel completado + 1
