@@ -327,7 +327,7 @@ export default function Level2() {
         }}
         type="win"
         title="¡¡INCREÍBLE!!"
-        subtitle="¡¡Sobreviviste a los 12 VASOS!! Eres un genio."
+        subtitle="¡¡Sobreviviste a los 12 VASOS!! Eres una genio."
         buttonText="SIGUIENTE NIVEL"
       />
       <GameModal
@@ -409,7 +409,7 @@ export default function Level2() {
           </div>
 
           <h1 className="text-4xl font-bold font-mono text-cyan-400 mb-4 animate-pulse">
-            ⑨ GUARDIANA DE DATOS ⑨
+            ⑨ Cirno ⑨
           </h1>
 
           <div className="w-full border-4 border-cyan-400 bg-black p-6">

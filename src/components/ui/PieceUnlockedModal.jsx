@@ -34,7 +34,7 @@ const PIECE_DATA = {
   logic: {
     name: "LOGIC_BYPASS",
     title: "El Protocolo",
-    subtitle: "Dejar de sobrepensar",
+    subtitle: "Recuerda...",
     color: HEART_COLORS.logic,
     bossName: "⑨ CIRNO ⑨",
     bossImg: cirnoImg,
